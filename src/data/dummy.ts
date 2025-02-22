@@ -97,5 +97,94 @@ export const dummyAdminStats = {
       rides: 38,
       avgPrice: 85.00
     }
+  ],
+  allRides: [
+    {
+      id: "ride-001",
+      customer: {
+        name: "John Smith",
+        email: "john@example.com",
+        phone: "+1 234-567-8900"
+      },
+      driver: {
+        name: "Carlos Martinez",
+        rating: 4.8,
+        vehicle: "Toyota Fortuner (CRC-123)"
+      },
+      ride: {
+        from: "Jaco Beach",
+        to: "Manuel Antonio",
+        distance: "45 km",
+        duration: "1h 15m"
+      },
+      payment: {
+        amount: 85.00,
+        method: "Credit Card",
+        status: "Paid"
+      },
+      schedule: {
+        date: "2024-02-25",
+        time: "10:00 AM",
+        status: "Confirmed"
+      }
+    },
+    {
+      id: "ride-002",
+      customer: {
+        name: "Emma Wilson",
+        email: "emma@example.com",
+        phone: "+1 234-567-8901"
+      },
+      driver: {
+        name: "Maria Rodriguez",
+        rating: 4.9,
+        vehicle: "Honda CR-V (CRC-456)"
+      },
+      ride: {
+        from: "Liberia Airport",
+        to: "Tamarindo",
+        distance: "65 km",
+        duration: "1h 30m"
+      },
+      payment: {
+        amount: 95.00,
+        method: "PayPal",
+        status: "Paid"
+      },
+      schedule: {
+        date: "2024-02-25",
+        time: "2:00 PM",
+        status: "In Progress"
+      }
+    },
+    {
+      id: "ride-003",
+      customer: {
+        name: "Michael Brown",
+        email: "michael@example.com",
+        phone: "+1 234-567-8902"
+      },
+      driver: {
+        name: "Juan Perez",
+        rating: 4.7,
+        vehicle: "Hyundai Tucson (CRC-789)"
+      },
+      ride: {
+        from: "Manuel Antonio",
+        to: "Quepos Airport",
+        distance: "15 km",
+        duration: "25m"
+      },
+      payment: {
+        amount: 45.00,
+        method: "Cash",
+        status: "Pending"
+      },
+      schedule: {
+        date: "2024-02-25",
+        time: "4:30 PM",
+        status: "Scheduled"
+      }
+    }
   ]
 }; 

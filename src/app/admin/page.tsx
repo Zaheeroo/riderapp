@@ -1,7 +1,16 @@
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dummyAdminStats } from "@/data/dummy";
-import { Car, DollarSign, Users } from "lucide-react";
+import { Car, Clock, DollarSign, MapPin, Phone, Star, Users } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function AdminDashboard() {
   return (
@@ -71,7 +80,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Recent Rides */}
+        {/* Recent Rides and Popular Routes */}
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -129,6 +138,99 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Detailed Rides Table */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>All Rides</CardTitle>
+              <Button variant="outline" size="sm">
+                Export CSV
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Driver</TableHead>
+                    <TableHead>Route</TableHead>
+                    <TableHead>Schedule</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dummyAdminStats.allRides.map((ride) => (
+                    <TableRow key={ride.id}>
+                      <TableCell className="font-medium">{ride.id}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="font-medium">{ride.customer.name}</p>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Phone className="mr-1 h-3 w-3" />
+                            {ride.customer.phone}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center">
+                            <span className="font-medium">{ride.driver.name}</span>
+                            <div className="ml-2 flex items-center text-yellow-500">
+                              <Star className="h-3 w-3 fill-current" />
+                              <span className="ml-1 text-xs">{ride.driver.rating}</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{ride.driver.vehicle}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center text-sm">
+                            <MapPin className="mr-1 h-3 w-3" />
+                            {ride.ride.from} → {ride.ride.to}
+                          </div>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Clock className="mr-1 h-3 w-3" />
+                            {ride.ride.duration} ({ride.ride.distance})
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="font-medium">{ride.schedule.date}</p>
+                          <p className="text-xs text-muted-foreground">{ride.schedule.time}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="font-medium">${ride.payment.amount}</p>
+                          <p className="text-xs text-muted-foreground">{ride.payment.method}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                          ${
+                            ride.schedule.status === "Confirmed"
+                              ? "bg-green-500/10 text-green-500"
+                              : ride.schedule.status === "In Progress"
+                              ? "bg-blue-500/10 text-blue-500"
+                              : "bg-yellow-500/10 text-yellow-500"
+                          }`}>
+                          {ride.schedule.status}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
