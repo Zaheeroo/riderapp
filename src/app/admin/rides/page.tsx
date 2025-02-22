@@ -19,14 +19,14 @@ export default function AdminRidesPage() {
   return (
     <DashboardLayout userType="admin">
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Rides Management</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Rides Management</h2>
             <p className="text-muted-foreground">
               Create and manage scheduled trips
             </p>
           </div>
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Create New Trip
           </Button>
@@ -49,7 +49,10 @@ export default function AdminRidesPage() {
                   <SelectContent>
                     {dummyCustomersExtended.map((customer) => (
                       <SelectItem key={customer.id} value={customer.id.toString()}>
-                        {customer.name} - {customer.phone}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <span>{customer.name}</span>
+                          <span className="text-xs text-muted-foreground">{customer.phone}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -66,7 +69,10 @@ export default function AdminRidesPage() {
                   <SelectContent>
                     {dummyDrivers.map((driver) => (
                       <SelectItem key={driver.id} value={driver.id.toString()}>
-                        {driver.name} - {driver.vehicle.model}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <span>{driver.name}</span>
+                          <span className="text-xs text-muted-foreground">{driver.vehicle.model}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -90,7 +96,7 @@ export default function AdminRidesPage() {
               </div>
 
               {/* Locations */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Pickup Location</label>
                   <Input placeholder="Hotel name, airport, or address" />
@@ -102,7 +108,7 @@ export default function AdminRidesPage() {
               </div>
 
               {/* Date and Time */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Pickup Date</label>
                   <Input type="date" min={new Date().toISOString().split('T')[0]} />
@@ -114,7 +120,7 @@ export default function AdminRidesPage() {
               </div>
 
               {/* Trip Details */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Number of Passengers</label>
                   <Select>
@@ -139,7 +145,12 @@ export default function AdminRidesPage() {
                     <SelectContent>
                       {dummyBookingData.vehicleTypes.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.name} - Up to {vehicle.features.includes("Extra Luggage Space") ? "12" : "6"} passengers
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span>{vehicle.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              Up to {vehicle.features.includes("Extra Luggage Space") ? "12" : "6"} passengers
+                            </span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -148,7 +159,7 @@ export default function AdminRidesPage() {
               </div>
 
               {/* Price and Payment */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Trip Price ($)</label>
                   <Input type="number" placeholder="Enter trip price" />
@@ -187,9 +198,9 @@ export default function AdminRidesPage() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end space-x-2">
-              <Button variant="outline">Save as Draft</Button>
-              <Button>Create Trip</Button>
+            <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
+              <Button variant="outline" className="w-full sm:w-auto">Save as Draft</Button>
+              <Button className="w-full sm:w-auto">Create Trip</Button>
             </div>
           </CardContent>
         </Card>
@@ -197,64 +208,66 @@ export default function AdminRidesPage() {
         {/* Upcoming Trips */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <CardTitle>Upcoming Trips</CardTitle>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Input
                   placeholder="Search trips..."
-                  className="w-[300px]"
+                  className="w-full sm:w-[300px]"
                 />
-                <Button variant="outline">
+                <Button variant="outline" className="shrink-0">
                   <Search className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Driver</TableHead>
-                  <TableHead>Route</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {/* Example row - In real app, map through actual trips */}
-                <TableRow>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="font-medium">Mar 15, 2024</p>
-                      <p className="text-sm text-muted-foreground">10:00 AM</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>John Smith</TableCell>
-                  <TableCell>Carlos M.</TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="text-sm">Jaco Beach → Manuel Antonio</p>
-                      <p className="text-xs text-muted-foreground">2 passengers</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-500/10 text-blue-500">
-                      Confirmed
-                    </div>
-                  </TableCell>
-                  <TableCell>$85.00</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">Edit</Button>
-                      <Button variant="outline" size="sm">Cancel</Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+          <CardContent className="overflow-auto">
+            <div className="min-w-[800px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date & Time</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Driver</TableHead>
+                    <TableHead>Route</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* Example row - In real app, map through actual trips */}
+                  <TableRow>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="font-medium">Mar 15, 2024</p>
+                        <p className="text-sm text-muted-foreground">10:00 AM</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>John Smith</TableCell>
+                    <TableCell>Carlos M.</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="text-sm">Jaco Beach → Manuel Antonio</p>
+                        <p className="text-xs text-muted-foreground">2 passengers</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-500/10 text-blue-500">
+                        Confirmed
+                      </div>
+                    </TableCell>
+                    <TableCell>$85.00</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">Edit</Button>
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">Cancel</Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

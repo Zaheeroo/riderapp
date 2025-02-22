@@ -1,8 +1,11 @@
-import { ReactNode } from "react";
+"use client";
+
+import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Car, Home, LogOut, Menu, Users, Calendar } from "lucide-react";
+import { Car, Home, LogOut, Menu, Users, Calendar, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -10,6 +13,8 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children, userType }: DashboardLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const navigation = {
     admin: [
       { name: "Dashboard", href: "/admin", icon: Home },
@@ -31,10 +36,21 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="fixed inset-y-0 z-50 flex w-72 flex-col">
+      <div className={cn(
+        "fixed inset-y-0 z-50 flex w-72 flex-col transition-transform duration-300 ease-in-out md:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-border bg-card px-6 pb-4">
-          <div className="flex h-16 shrink-0 items-center">
+          <div className="flex h-16 shrink-0 items-center justify-between">
             <Image
               src="/logo.svg"
               alt="Jaco Rides Logo"
@@ -42,6 +58,14 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
               height={40}
               className="h-8 w-auto"
             />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -52,6 +76,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
                       <Link
                         href={item.href}
                         className="flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-foreground hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => setSidebarOpen(false)}
                       >
                         <item.icon className="h-6 w-6 shrink-0" />
                         {item.name}
@@ -78,9 +103,17 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
       </div>
 
       {/* Main content */}
-      <main className="pl-72">
+      <main className={cn(
+        "transition-padding duration-300 ease-in-out",
+        "px-4 md:px-8",
+        "md:pl-80" // 72px sidebar + 8px padding
+      )}>
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-          <Button variant="ghost" className="-m-2.5 p-2.5 text-foreground xl:hidden">
+          <Button 
+            variant="ghost" 
+            className="md:hidden -m-2.5 p-2.5 text-foreground"
+            onClick={() => setSidebarOpen(true)}
+          >
             <span className="sr-only">Open sidebar</span>
             <Menu className="h-5 w-5" />
           </Button>
@@ -93,7 +126,11 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
           </div>
         </div>
 
-        <div className="px-4 py-8 sm:px-6 lg:px-8">{children}</div>
+        <div className="py-8">
+          <div className="mx-auto max-w-7xl">
+            {children}
+          </div>
+        </div>
       </main>
     </div>
   );

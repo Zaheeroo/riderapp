@@ -415,100 +415,131 @@ export const dummyDriverEarnings = {
 export const dummyCustomerRides = {
   upcomingRides: [
     {
-      id: "ride-001",
+      id: "ride1",
       driver: {
-        name: "Carlos Martinez",
-        phone: "+506 8888-1111",
+        name: "Carlos M.",
+        phone: "+506 8888-8888",
         rating: 4.8,
+        avatar: "/avatars/driver1.jpg",
         vehicle: {
-          model: "Toyota Fortuner",
+          model: "Toyota Camry",
           color: "Silver",
-          plate: "CRC-123"
+          plate: "SJO-1234"
         }
       },
-      pickup: "Jaco Beach",
-      dropoff: "Manuel Antonio",
-      date: "2024-03-10",
+      pickup: {
+        location: "San José International Airport",
+        time: "10:00 AM"
+      },
+      dropoff: {
+        location: "Jaco Beach Resort",
+        time: "11:30 AM"
+      },
+      date: "Mar 15, 2024",
       time: "10:00 AM",
       status: "Confirmed",
-      price: 85.00,
-      distance: "45 km",
-      duration: "1h 15m",
-      paymentMethod: "Credit Card"
+      payment: {
+        amount: 85.00,
+        method: "Visa ending in 4242"
+      },
+      distance: "95 km",
+      duration: "1h 30m"
     },
     {
-      id: "ride-002",
+      id: "ride2",
       driver: {
-        name: "Maria Rodriguez",
-        phone: "+506 8888-2222",
+        name: "Maria R.",
+        phone: "+506 7777-7777",
         rating: 4.9,
+        avatar: "/avatars/driver2.jpg",
         vehicle: {
           model: "Honda CR-V",
           color: "White",
-          plate: "CRC-456"
+          plate: "SJO-5678"
         }
       },
-      pickup: "Liberia Airport",
-      dropoff: "Tamarindo",
-      date: "2024-03-12",
+      pickup: {
+        location: "Manuel Antonio National Park",
+        time: "2:00 PM"
+      },
+      dropoff: {
+        location: "Quepos Marina",
+        time: "2:30 PM"
+      },
+      date: "Mar 16, 2024",
       time: "2:00 PM",
-      status: "Scheduled",
-      price: 95.00,
-      distance: "65 km",
-      duration: "1h 30m",
-      paymentMethod: "PayPal"
+      status: "Pending",
+      payment: {
+        amount: 45.00,
+        method: "PayPal"
+      },
+      distance: "7 km",
+      duration: "30m"
     }
   ],
   completedRides: [
     {
-      id: "ride-003",
+      id: "ride3",
       driver: {
-        name: "Juan Perez",
+        name: "Juan D.",
+        phone: "+506 6666-6666",
         rating: 4.7,
+        avatar: "/avatars/driver3.jpg",
         vehicle: {
-          model: "Hyundai Tucson",
+          model: "Toyota Fortuner",
           color: "Black",
-          plate: "CRC-789"
+          plate: "SJO-9012"
         }
       },
-      pickup: "Manuel Antonio",
-      dropoff: "Quepos Airport",
-      date: "2024-03-08",
-      time: "4:30 PM",
+      pickup: {
+        location: "Liberia International Airport",
+        time: "1:00 PM"
+      },
+      dropoff: {
+        location: "Tamarindo Beach",
+        time: "2:30 PM"
+      },
+      date: "Mar 10, 2024",
+      time: "1:00 PM",
       status: "Completed",
-      price: 45.00,
-      distance: "15 km",
-      duration: "25m",
-      paymentMethod: "Cash",
-      rating: {
-        given: 5,
-        comment: "Excellent service and very professional driver"
-      }
+      payment: {
+        amount: 95.00,
+        method: "Credit Card"
+      },
+      distance: "80 km",
+      duration: "1h 30m",
+      customerRating: 5
     },
     {
-      id: "ride-004",
+      id: "ride4",
       driver: {
-        name: "Ana Mora",
-        rating: 4.8,
+        name: "Ana L.",
+        phone: "+506 5555-5555",
+        rating: 4.9,
+        avatar: "/avatars/driver4.jpg",
         vehicle: {
-          model: "Toyota RAV4",
+          model: "Hyundai Tucson",
           color: "Blue",
-          plate: "CRC-101"
+          plate: "SJO-3456"
         }
       },
-      pickup: "Tamarindo",
-      dropoff: "Playa Flamingo",
-      date: "2024-03-07",
-      time: "11:00 AM",
+      pickup: {
+        location: "La Fortuna",
+        time: "9:00 AM"
+      },
+      dropoff: {
+        location: "Arenal Volcano National Park",
+        time: "9:30 AM"
+      },
+      date: "Mar 8, 2024",
+      time: "9:00 AM",
       status: "Completed",
-      price: 35.00,
-      distance: "20 km",
-      duration: "30m",
-      paymentMethod: "Credit Card",
-      rating: {
-        given: 4,
-        comment: "Good ride, would book again"
-      }
+      payment: {
+        amount: 35.00,
+        method: "Cash"
+      },
+      distance: "15 km",
+      duration: "30m"
     }
   ]
 };
@@ -516,28 +547,31 @@ export const dummyCustomerRides = {
 export const dummyBookingData = {
   popularDestinations: [
     {
-      name: "Manuel Antonio",
+      id: "dest1",
+      name: "Manuel Antonio National Park",
       image: "/destinations/manuel-antonio.jpg",
-      description: "Beautiful national park and beaches",
-      averagePrice: 85.00,
-      distance: "45 km",
-      duration: "1h 15m"
+      description: "Beautiful beaches and wildlife",
+      averagePrice: 120,
+      distance: "45",
+      duration: "60"
     },
     {
-      name: "Tamarindo",
-      image: "/destinations/tamarindo.jpg",
-      description: "Surf town with great nightlife",
-      averagePrice: 95.00,
-      distance: "65 km",
-      duration: "1h 30m"
-    },
-    {
+      id: "dest2",
       name: "Arenal Volcano",
       image: "/destinations/arenal.jpg",
       description: "Active volcano and hot springs",
-      averagePrice: 150.00,
-      distance: "135 km",
-      duration: "3h"
+      averagePrice: 150,
+      distance: "85",
+      duration: "120"
+    },
+    {
+      id: "dest3",
+      name: "Monteverde Cloud Forest",
+      image: "/destinations/monteverde.jpg",
+      description: "Unique cloud forest ecosystem",
+      averagePrice: 135,
+      distance: "65",
+      duration: "90"
     }
   ],
   vehicleTypes: [
@@ -596,22 +630,25 @@ export const dummyBookingData = {
   ],
   paymentMethods: [
     {
-      id: "card",
-      name: "Credit/Debit Card",
+      id: "card1",
+      name: "Visa ending in 4242",
       icon: "credit-card",
-      lastUsed: true
+      lastUsed: true,
+      isDefault: true
     },
     {
-      id: "paypal",
+      id: "card2", 
       name: "PayPal",
       icon: "paypal",
-      lastUsed: false
+      lastUsed: false,
+      isDefault: false
     },
     {
-      id: "cash",
+      id: "card3",
       name: "Cash",
       icon: "cash",
-      lastUsed: false
+      lastUsed: false,
+      isDefault: false
     }
   ],
   promos: [
