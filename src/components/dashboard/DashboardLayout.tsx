@@ -1,0 +1,99 @@
+import { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import { Car, Home, LogOut, Menu, Users } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+
+interface DashboardLayoutProps {
+  children: ReactNode;
+  userType: "admin" | "driver" | "customer";
+}
+
+export default function DashboardLayout({ children, userType }: DashboardLayoutProps) {
+  const navigation = {
+    admin: [
+      { name: "Dashboard", href: "/admin", icon: Home },
+      { name: "Drivers", href: "/admin/drivers", icon: Car },
+      { name: "Customers", href: "/admin/customers", icon: Users },
+    ],
+    driver: [
+      { name: "Dashboard", href: "/driver", icon: Home },
+      { name: "My Rides", href: "/driver/rides", icon: Car },
+      { name: "Earnings", href: "/driver/earnings", icon: Users },
+    ],
+    customer: [
+      { name: "Dashboard", href: "/customer", icon: Home },
+      { name: "Book a Ride", href: "/customer/book", icon: Car },
+      { name: "My Rides", href: "/customer/rides", icon: Users },
+    ],
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Sidebar */}
+      <div className="fixed inset-y-0 z-50 flex w-72 flex-col">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-border bg-card px-6 pb-4">
+          <div className="flex h-16 shrink-0 items-center">
+            <Image
+              src="/logo.svg"
+              alt="Jaco Rides Logo"
+              width={120}
+              height={40}
+              className="h-8 w-auto"
+            />
+          </div>
+          <nav className="flex flex-1 flex-col">
+            <ul role="list" className="flex flex-1 flex-col gap-y-7">
+              <li>
+                <ul role="list" className="-mx-2 space-y-1">
+                  {navigation[userType].map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-foreground hover:bg-accent hover:text-accent-foreground"
+                      >
+                        <item.icon className="h-6 w-6 shrink-0" />
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+              <li className="mt-auto">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-x-3"
+                  asChild
+                >
+                  <Link href="/login">
+                    <LogOut className="h-6 w-6 shrink-0" />
+                    Logout
+                  </Link>
+                </Button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <main className="pl-72">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <Button variant="ghost" className="-m-2.5 p-2.5 text-foreground xl:hidden">
+            <span className="sr-only">Open sidebar</span>
+            <Menu className="h-5 w-5" />
+          </Button>
+
+          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1"></div>
+            <div className="flex items-center gap-x-4 lg:gap-x-6">
+              {/* Profile dropdown can be added here */}
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 py-8 sm:px-6 lg:px-8">{children}</div>
+      </main>
+    </div>
+  );
+} 
