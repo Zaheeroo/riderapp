@@ -38,6 +38,7 @@ Instructions.md
 ##Instructions
 - Use shadcn for the components
 - Use lucide icons for the icons
+-Make sure the file structure is super clean and easy to understand
 - Use vercel for the hosting. Every component you install must be always compatible with Vercel
 - Use typescript for the programming language
 - Use nextjs for the framework
