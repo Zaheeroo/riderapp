@@ -2,9 +2,10 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dummyBookingData } from "@/data/dummy";
-import { Car, Clock, CreditCard, MapPin, Star, Ticket } from "lucide-react";
+import { Car, Clock, CreditCard, MapPin, Users, Luggage, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 
 export default function BookRidePage() {
@@ -12,39 +13,92 @@ export default function BookRidePage() {
     <DashboardLayout userType="customer">
       <div className="space-y-8">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Book a Ride</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Schedule a Trip</h2>
           <p className="text-muted-foreground">
-            Choose your destination and preferred vehicle
+            Plan your journey with our professional transportation service
           </p>
         </div>
 
         {/* Booking Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Ride Details</CardTitle>
+            <CardTitle>Trip Details</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-6">
+              {/* Trip Type */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Trip Type</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select trip type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="airport">Airport Transfer</SelectItem>
+                    <SelectItem value="tour">Guided Tour</SelectItem>
+                    <SelectItem value="pointToPoint">Point to Point Transfer</SelectItem>
+                    <SelectItem value="hourly">Hourly Charter</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Locations */}
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Pickup Location</label>
-                  <Input placeholder="Enter pickup location" />
+                  <Input placeholder="Hotel name, airport, or address" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Dropoff Location</label>
-                  <Input placeholder="Enter destination" />
+                  <label className="text-sm font-medium">Destination</label>
+                  <Input placeholder="Final destination" />
                 </div>
               </div>
+
+              {/* Date and Time */}
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Date</label>
-                  <Input type="date" />
+                  <label className="text-sm font-medium">Pickup Date</label>
+                  <Input type="date" min={new Date().toISOString().split('T')[0]} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Time</label>
+                  <label className="text-sm font-medium">Pickup Time</label>
                   <Input type="time" />
                 </div>
               </div>
+
+              {/* Passengers and Luggage */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Number of Passengers</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select number of passengers" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1,2,3,4,5,6,7,8,9,10,11,12].map((num) => (
+                        <SelectItem key={num} value={num.toString()}>
+                          {num} {num === 1 ? 'passenger' : 'passengers'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Luggage</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select luggage size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Small (1-2 pieces)</SelectItem>
+                      <SelectItem value="medium">Medium (3-4 pieces)</SelectItem>
+                      <SelectItem value="large">Large (5+ pieces)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Vehicle Type */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Vehicle Type</label>
                 <Select>
@@ -54,12 +108,23 @@ export default function BookRidePage() {
                   <SelectContent>
                     {dummyBookingData.vehicleTypes.map((vehicle) => (
                       <SelectItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.name} - ${vehicle.basePrice}
+                        {vehicle.name} - Up to {vehicle.features.includes("Extra Luggage Space") ? "12" : "6"} passengers
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Additional Requirements */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Special Requirements</label>
+                <Textarea 
+                  placeholder="Child seat, wheelchair access, specific language driver, or any other special needs"
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              {/* Payment Method */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Payment Method</label>
                 <Select>
@@ -75,6 +140,8 @@ export default function BookRidePage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Promo Code */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Promo Code</label>
                 <div className="flex gap-2">
@@ -88,7 +155,7 @@ export default function BookRidePage() {
 
         {/* Popular Destinations */}
         <div>
-          <h3 className="text-xl font-semibold mb-4">Popular Destinations</h3>
+          <h3 className="text-xl font-semibold mb-4">Popular Routes & Tours</h3>
           <div className="grid gap-6 md:grid-cols-3">
             {dummyBookingData.popularDestinations.map((destination, i) => (
               <Card key={i} className="overflow-hidden">
@@ -120,56 +187,17 @@ export default function BookRidePage() {
           </div>
         </div>
 
-        {/* Available Drivers */}
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Available Drivers Nearby</h3>
-          <div className="grid gap-6 md:grid-cols-2">
-            {dummyBookingData.availableDrivers.map((driver) => (
-              <Card key={driver.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium">{driver.name}</p>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
-                        {driver.rating} • {driver.totalRides} rides
-                      </div>
-                      <div className="flex items-center text-sm text-muted-foreground mt-1">
-                        <Car className="mr-1 h-4 w-4" />
-                        {driver.vehicle.model} • {driver.vehicle.color} • {driver.vehicle.year}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-500/10 text-green-500">
-                        {driver.status}
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {driver.estimatedArrival} away
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
         {/* Active Promos */}
         <div>
-          <h3 className="text-xl font-semibold mb-4">Available Promotions</h3>
+          <h3 className="text-xl font-semibold mb-4">Current Promotions</h3>
           <div className="grid gap-4 md:grid-cols-2">
             {dummyBookingData.promos.map((promo, i) => (
               <Card key={i}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="mr-4 p-2 bg-primary/10 rounded-full">
-                        <Ticket className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{promo.description}</p>
-                        <p className="text-sm text-muted-foreground">Code: {promo.code}</p>
-                      </div>
+                    <div>
+                      <p className="font-medium">{promo.description}</p>
+                      <p className="text-sm text-muted-foreground">Use code: {promo.code}</p>
                     </div>
                     <Button variant="outline" size="sm">Apply</Button>
                   </div>
@@ -181,7 +209,7 @@ export default function BookRidePage() {
 
         {/* Book Now Button */}
         <div className="flex justify-end">
-          <Button size="lg">Book Now</Button>
+          <Button size="lg">Schedule Trip</Button>
         </div>
       </div>
     </DashboardLayout>

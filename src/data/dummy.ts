@@ -30,6 +30,66 @@ export const dummyCustomers = [
   }
 ];
 
+export const dummyCustomersExtended = [
+  {
+    id: 1,
+    name: "John Smith",
+    email: "john@example.com",
+    phone: "+1 234-567-8900",
+    status: "Active",
+    location: "Jaco Beach",
+    joinDate: "2024-01-15",
+    totalRides: 8,
+    totalSpent: 680.00,
+    lastRide: "2024-02-25",
+    preferredPayment: "Credit Card",
+    rating: 4.9,
+    preferences: {
+      language: "English",
+      currency: "USD",
+      notifications: "Email + SMS"
+    }
+  },
+  {
+    id: 2,
+    name: "Emma Wilson",
+    email: "emma@example.com",
+    phone: "+1 234-567-8901",
+    status: "Active",
+    location: "Tamarindo",
+    joinDate: "2024-01-20",
+    totalRides: 5,
+    totalSpent: 475.00,
+    lastRide: "2024-02-25",
+    preferredPayment: "PayPal",
+    rating: 4.8,
+    preferences: {
+      language: "English",
+      currency: "USD",
+      notifications: "Email"
+    }
+  },
+  {
+    id: 3,
+    name: "Michael Brown",
+    email: "michael@example.com",
+    phone: "+1 234-567-8902",
+    status: "Inactive",
+    location: "Manuel Antonio",
+    joinDate: "2024-02-01",
+    totalRides: 2,
+    totalSpent: 90.00,
+    lastRide: "2024-02-25",
+    preferredPayment: "Cash",
+    rating: 4.7,
+    preferences: {
+      language: "Spanish",
+      currency: "USD",
+      notifications: "SMS"
+    }
+  }
+];
+
 export const dummyDrivers = [
   {
     id: 1,
