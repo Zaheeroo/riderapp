@@ -82,7 +82,7 @@ export default function CustomersPage() {
               Manage and monitor your customer base
             </p>
           </div>
-          <Button>Export Data</Button>
+          <Button>Add New Customer</Button>
         </div>
 
         {/* Stats Overview */}
