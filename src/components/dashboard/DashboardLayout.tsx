@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Car, Home, LogOut, Menu, Users } from "lucide-react";
+import { Car, Home, LogOut, Menu, Users, Calendar } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -13,6 +13,7 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
   const navigation = {
     admin: [
       { name: "Dashboard", href: "/admin", icon: Home },
+      { name: "Rides", href: "/admin/rides", icon: Calendar },
       { name: "Drivers", href: "/admin/drivers", icon: Car },
       { name: "Customers", href: "/admin/customers", icon: Users },
     ],
