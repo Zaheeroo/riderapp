@@ -665,4 +665,164 @@ export const dummyBookingData = {
       type: "fixed"
     }
   ]
+};
+
+export const dummyCommunication = {
+  messages: [
+    {
+      id: "msg1",
+      conversation_id: "conv1",
+      sender_id: "driver1",
+      sender_name: "Carlos M.",
+      sender_type: "driver",
+      receiver_id: "customer1",
+      receiver_name: "John Smith",
+      receiver_type: "customer",
+      message: "I've arrived at the pickup location",
+      type: "text",
+      status: "delivered",
+      created_at: "2024-02-22T14:30:00Z",
+      ride_id: "ride1"
+    },
+    {
+      id: "msg2",
+      conversation_id: "conv1",
+      sender_id: "customer1",
+      sender_name: "John Smith",
+      sender_type: "customer",
+      receiver_id: "driver1",
+      receiver_name: "Carlos M.",
+      receiver_type: "driver",
+      message: "Great, I'll be there in 2 minutes",
+      type: "text",
+      status: "read",
+      created_at: "2024-02-22T14:31:00Z",
+      ride_id: "ride1"
+    },
+    {
+      id: "msg3",
+      conversation_id: "conv2",
+      sender_id: "admin1",
+      sender_name: "Admin",
+      sender_type: "admin",
+      receiver_id: "driver1",
+      receiver_name: "Carlos M.",
+      receiver_type: "driver",
+      message: "Please update your insurance documents",
+      type: "text",
+      status: "delivered",
+      created_at: "2024-02-22T10:00:00Z"
+    }
+  ],
+  notifications: {
+    customer: [
+      {
+        id: "notif1",
+        user_id: "customer1",
+        type: "ride_status",
+        title: "Driver Arrived",
+        message: "Your driver Carlos M. has arrived at the pickup location",
+        read: false,
+        action_url: "/customer/rides",
+        created_at: "2024-02-22T14:30:00Z"
+      },
+      {
+        id: "notif2",
+        user_id: "customer1",
+        type: "payment",
+        title: "Payment Successful",
+        message: "Your payment of $85.00 for ride #ride1 was successful",
+        read: true,
+        action_url: "/customer/rides",
+        created_at: "2024-02-22T13:00:00Z"
+      }
+    ],
+    driver: [
+      {
+        id: "notif3",
+        user_id: "driver1",
+        type: "new_ride",
+        title: "New Ride Request",
+        message: "New ride request from John Smith",
+        read: false,
+        action_url: "/driver/rides",
+        created_at: "2024-02-22T14:00:00Z"
+      },
+      {
+        id: "notif4",
+        user_id: "driver1",
+        type: "document",
+        title: "Document Expiring",
+        message: "Your insurance document will expire in 15 days",
+        read: false,
+        action_url: "/driver/profile",
+        created_at: "2024-02-22T09:00:00Z"
+      }
+    ],
+    admin: [
+      {
+        id: "notif5",
+        user_id: "admin1",
+        type: "system_alert",
+        title: "High Demand Alert",
+        message: "Unusually high booking demand in Jaco Beach area",
+        read: false,
+        action_url: "/admin/rides",
+        created_at: "2024-02-22T14:15:00Z"
+      },
+      {
+        id: "notif6",
+        user_id: "admin1",
+        type: "driver_document",
+        title: "Document Update Required",
+        message: "5 drivers have documents expiring soon",
+        read: true,
+        action_url: "/admin/drivers",
+        created_at: "2024-02-22T08:00:00Z"
+      }
+    ]
+  },
+  conversations: [
+    {
+      id: "conv1",
+      type: "customer_driver",
+      participants: [
+        {
+          id: "customer1",
+          name: "John Smith",
+          type: "customer",
+          avatar: "/avatars/customer1.jpg"
+        },
+        {
+          id: "driver1",
+          name: "Carlos M.",
+          type: "driver",
+          avatar: "/avatars/driver1.jpg"
+        }
+      ],
+      status: "active",
+      last_message_at: "2024-02-22T14:31:00Z",
+      ride_id: "ride1"
+    },
+    {
+      id: "conv2",
+      type: "admin_driver",
+      participants: [
+        {
+          id: "admin1",
+          name: "Admin",
+          type: "admin",
+          avatar: "/avatars/admin.jpg"
+        },
+        {
+          id: "driver1",
+          name: "Carlos M.",
+          type: "driver",
+          avatar: "/avatars/driver1.jpg"
+        }
+      ],
+      status: "active",
+      last_message_at: "2024-02-22T10:00:00Z"
+    }
+  ]
 }; 

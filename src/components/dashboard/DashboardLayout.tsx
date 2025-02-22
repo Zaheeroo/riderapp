@@ -2,7 +2,7 @@
 
 import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Car, Home, LogOut, Menu, Users, Calendar, X } from "lucide-react";
+import { Car, Home, LogOut, Menu, Users, Calendar, X, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -21,16 +21,19 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
       { name: "Rides", href: "/admin/rides", icon: Calendar },
       { name: "Drivers", href: "/admin/drivers", icon: Car },
       { name: "Customers", href: "/admin/customers", icon: Users },
+      { name: "Messages", href: "/admin/messages", icon: MessageSquare },
     ],
     driver: [
       { name: "Dashboard", href: "/driver", icon: Home },
       { name: "My Rides", href: "/driver/rides", icon: Car },
       { name: "Earnings", href: "/driver/earnings", icon: Users },
+      { name: "Messages", href: "/driver/messages", icon: MessageSquare },
     ],
     customer: [
       { name: "Dashboard", href: "/customer", icon: Home },
       { name: "Book a Ride", href: "/customer/book", icon: Car },
       { name: "My Rides", href: "/customer/rides", icon: Users },
+      { name: "Messages", href: "/customer/messages", icon: MessageSquare },
     ],
   };
 
