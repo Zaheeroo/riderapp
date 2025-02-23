@@ -15,7 +15,7 @@ export default function CustomerUX() {
     .slice(0, 3); // Only show 3 most recent chats
 
   return (
-    <DashboardLayout userType="customer">
+    <DashboardLayout userType="customer" showMobileHeader={false}>
       {/* Main Container with max width for better mobile readability */}
       <div className="max-w-lg mx-auto px-4 space-y-6">
         {/* Welcome Section */}

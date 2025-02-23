@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils";
 interface DashboardLayoutProps {
   children: ReactNode;
   userType: "admin" | "driver" | "customer";
+  showMobileHeader?: boolean;
 }
 
-export default function DashboardLayout({ children, userType }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, userType, showMobileHeader = true }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navigation = {
@@ -111,23 +112,25 @@ export default function DashboardLayout({ children, userType }: DashboardLayoutP
         "px-4 md:px-8",
         "md:pl-80" // 72px sidebar + 8px padding
       )}>
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-          <Button 
-            variant="ghost" 
-            className="md:hidden -m-2.5 p-2.5 text-foreground"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <span className="sr-only">Open sidebar</span>
-            <Menu className="h-5 w-5" />
-          </Button>
+        {showMobileHeader && (
+          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+            <Button 
+              variant="ghost" 
+              className="md:hidden -m-2.5 p-2.5 text-foreground"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <span className="sr-only">Open sidebar</span>
+              <Menu className="h-5 w-5" />
+            </Button>
 
-          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-            <div className="flex flex-1"></div>
-            <div className="flex items-center gap-x-4 lg:gap-x-6">
-              {/* Profile dropdown can be added here */}
+            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+              <div className="flex flex-1"></div>
+              <div className="flex items-center gap-x-4 lg:gap-x-6">
+                {/* Profile dropdown can be added here */}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="py-8">
           <div className="mx-auto max-w-7xl">
