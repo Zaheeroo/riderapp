@@ -79,38 +79,65 @@ export default function CustomerDashboard() {
           "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card className="bg-primary/5">
-            <CardContent className="p-4 text-center">
-              <Calendar className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <p className="text-sm font-medium">Total Rides</p>
-              <p className="text-2xl font-bold text-primary">{customer.pastRides.length}</p>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">{customer.pastRides.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Completed rides
+                </p>
+                <p className="text-xs text-green-500">+{customer.upcomingRides.length} scheduled</p>
+              </div>
             </CardContent>
           </Card>
-          <Card className="bg-primary/5">
-            <CardContent className="p-4 text-center">
-              <Star className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <p className="text-sm font-medium">Rating</p>
-              <p className="text-2xl font-bold text-primary">4.9</p>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Rating</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">4.9</div>
+                <p className="text-xs text-muted-foreground">
+                  Based on {customer.pastRides.length} rides
+                </p>
+                <p className="text-xs text-green-500">Top rated customer</p>
+              </div>
             </CardContent>
           </Card>
-          {!isMobile && (
-            <>
-              <Card className="bg-primary/5">
-                <CardContent className="p-4 text-center">
-                  <MessageSquare className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <p className="text-sm font-medium">Messages</p>
-                  <p className="text-2xl font-bold text-primary">{recentChats.length}</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-primary/5">
-                <CardContent className="p-4 text-center">
-                  <MapPin className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <p className="text-sm font-medium">Destinations</p>
-                  <p className="text-2xl font-bold text-primary">12</p>
-                </CardContent>
-              </Card>
-            </>
-          )}
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Messages</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">{recentChats.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Active conversations
+                </p>
+                <p className="text-xs text-green-500">2 new today</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Destinations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">12</div>
+                <p className="text-xs text-muted-foreground">
+                  Places visited
+                </p>
+                <p className="text-xs text-green-500">+3 this month</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Content Layout adapts to device */}

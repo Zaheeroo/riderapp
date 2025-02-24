@@ -97,38 +97,65 @@ export default function DriverDashboard() {
           "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card className="bg-primary/5">
-            <CardContent className="p-4 text-center">
-              <DollarSign className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <p className="text-sm font-medium">Today's Earnings</p>
-              <p className="text-2xl font-bold text-primary">${driver.earnings.today}</p>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Today's Earnings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">${driver.earnings.today}</div>
+                <p className="text-xs text-muted-foreground">
+                  {driver.todayRides.length} rides today
+                </p>
+                <p className="text-xs text-green-500">+${driver.earnings.today * 0.1} tips</p>
+              </div>
             </CardContent>
           </Card>
-          <Card className="bg-primary/5">
-            <CardContent className="p-4 text-center">
-              <Star className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <p className="text-sm font-medium">Rating</p>
-              <p className="text-2xl font-bold text-primary">{driver.rating}</p>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Rating</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">{driver.rating}</div>
+                <p className="text-xs text-muted-foreground">
+                  Last {driver.totalRides} rides
+                </p>
+                <p className="text-xs text-green-500">+0.2 this month</p>
+              </div>
             </CardContent>
           </Card>
-          {!isMobile && (
-            <>
-              <Card className="bg-primary/5">
-                <CardContent className="p-4 text-center">
-                  <MessageSquare className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <p className="text-sm font-medium">Messages</p>
-                  <p className="text-2xl font-bold text-primary">{recentChats.length}</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-primary/5">
-                <CardContent className="p-4 text-center">
-                  <Car className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <p className="text-sm font-medium">Total Rides</p>
-                  <p className="text-2xl font-bold text-primary">{driver.totalRides}</p>
-                </CardContent>
-              </Card>
-            </>
-          )}
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Messages</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">{recentChats.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Active conversations
+                </p>
+                <p className="text-xs text-green-500">2 new today</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">{driver.totalRides}</div>
+                <p className="text-xs text-muted-foreground">
+                  All time rides
+                </p>
+                <p className="text-xs text-green-500">+{driver.todayRides.length} today</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Content Layout adapts to device */}
