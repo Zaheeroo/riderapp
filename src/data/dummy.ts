@@ -102,14 +102,15 @@ export const dummyDriversExtended = [
   {
     id: 1,
     name: "Carlos Martinez",
-    email: "carlos.m@example.com",
-    phone: "+1 (555) 123-4567",
+    email: "carlos@jacorides.com",
+    phone: "+506 8888-1111",
     status: "Active",
     vehicle: {
       model: "Toyota Fortuner",
-      color: "Silver",
       year: "2023",
-      plate: "ABC 123"
+      plate: "CRC-123",
+      seats: 6,
+      color: "Silver"
     },
     rating: 4.8,
     totalRides: 1250,
@@ -171,7 +172,9 @@ export const dummyAdminStats = {
     customerPercentageChange: 8,
     activeChats: 24,
     attentionNeeded: 8,
-    chatPercentageChange: 15
+    chatPercentageChange: 15,
+    totalRides: 4521,
+    ridesIncrease: 15
   },
   earnings: {
     month: 45231,
