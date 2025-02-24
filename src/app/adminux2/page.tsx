@@ -65,7 +65,7 @@ const rides: Ride[] = [
   }
 ];
 
-export default function AdminUX2() {
+export default function AdminDashboard() {
   const { isMobile } = useDeviceType();
   const recentChats = dummyCommunication.conversations
     .filter(conv => conv.participants.some(p => p.type === "admin"))
