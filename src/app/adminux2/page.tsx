@@ -122,6 +122,12 @@ export default function AdminUX2() {
             <Button variant="outline">
               <Search className="h-4 w-4" />
             </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+              <Link href="/admin/drivers">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -269,6 +275,12 @@ export default function AdminUX2() {
             />
             <Button variant="outline">
               <Search className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+              <Link href="/admin/customers">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>
