@@ -573,14 +573,14 @@ export default function AdminUX2() {
           </div>
         ) : (
           // Desktop Layout
-          <div className="grid gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {/* Driver Fleet Section - Full width on desktop */}
             <div className="col-span-2">
               {renderDriverFleet()}
             </div>
 
-            {/* Customer Management Section */}
-            <div className="col-span-1">
+            {/* Customer Management Section - Full width on desktop */}
+            <div className="col-span-2">
               {renderCustomerManagement()}
             </div>
 

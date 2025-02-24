@@ -174,113 +174,119 @@ export default function CustomerUX2() {
           </Card>
 
           {/* My Rides Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">My Rides</h3>
-              <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
-                <Link href="/customer/rides">
-                  View All
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-
-            <ScrollArea className={cn(
-              isMobile ? "max-h-[300px]" : "max-h-[400px]"
-            )}>
-              <div className="space-y-4 pr-4">
-                {/* Upcoming Rides */}
-                {customer.upcomingRides.map((ride) => (
-                  <Card key={ride.id} className="relative overflow-hidden border-2 hover:border-primary/50 transition-colors">
-                    <CardContent className="p-4">
-                      <Badge 
-                        className="absolute top-2 right-2"
-                        variant={ride.status === "Confirmed" ? "default" : "secondary"}
-                      >
-                        {ride.status}
-                      </Badge>
-
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin className="h-4 w-4 text-primary shrink-0" />
-                          <p className="font-medium line-clamp-1">
-                            {ride.from} → {ride.to}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4 shrink-0" />
-                          <span>{ride.date} at {ride.time}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 mb-4">
-                        <Avatar className="h-10 w-10 border-2 border-primary/20">
-                          <AvatarFallback>{ride.driver[0]}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{ride.driver}</p>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Car className="mr-1 h-4 w-4" />
-                            <span>Toyota Fortuner</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <p className="text-lg font-bold">${ride.price}</p>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <MessageSquare className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Phone className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {/* Past Rides */}
-                {customer.pastRides.map((ride) => (
-                  <Card key={ride.id} className="relative overflow-hidden bg-muted/30">
-                    <CardContent className="p-4">
-                      <div className="mb-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin className="h-4 w-4 text-primary shrink-0" />
-                          <p className="font-medium line-clamp-1">
-                            {ride.from} → {ride.to}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4 shrink-0" />
-                          <span>{ride.date} at {ride.time}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3 mb-4">
-                        <Avatar className="h-10 w-10 border-2 border-muted">
-                          <AvatarFallback>{ride.driver[0]}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{ride.driver}</p>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Star className="mr-1 h-4 w-4 fill-yellow-400 stroke-yellow-400" />
-                            <span>4.9</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <p className="text-lg font-bold">${ride.price}</p>
-                        <Button size="sm" variant="outline">Book Similar</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold">My Rides</CardTitle>
+                  <CardDescription>View your upcoming and past rides</CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+                  <Link href="/customer/rides">
+                    View All
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
-            </ScrollArea>
-          </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className={cn(
+                isMobile ? "max-h-[300px]" : "max-h-[400px]"
+              )}>
+                <div className="space-y-4 p-4">
+                  {/* Upcoming Rides */}
+                  {customer.upcomingRides.map((ride) => (
+                    <Card key={ride.id} className="relative overflow-hidden border-2 hover:border-primary/50 transition-colors">
+                      <CardContent className="p-4">
+                        <Badge 
+                          className="absolute top-2 right-2"
+                          variant={ride.status === "Confirmed" ? "default" : "secondary"}
+                        >
+                          {ride.status}
+                        </Badge>
+
+                        <div className="mb-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MapPin className="h-4 w-4 text-primary shrink-0" />
+                            <p className="font-medium line-clamp-1">
+                              {ride.from} → {ride.to}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4 shrink-0" />
+                            <span>{ride.date} at {ride.time}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 mb-4">
+                          <Avatar className="h-10 w-10 border-2 border-primary/20">
+                            <AvatarFallback>{ride.driver[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{ride.driver}</p>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Car className="mr-1 h-4 w-4" />
+                              <span>Toyota Fortuner</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <p className="text-lg font-bold">${ride.price}</p>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              <MessageSquare className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <Phone className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {/* Past Rides */}
+                  {customer.pastRides.map((ride) => (
+                    <Card key={ride.id} className="relative overflow-hidden bg-muted/30">
+                      <CardContent className="p-4">
+                        <div className="mb-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MapPin className="h-4 w-4 text-primary shrink-0" />
+                            <p className="font-medium line-clamp-1">
+                              {ride.from} → {ride.to}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-4 w-4 shrink-0" />
+                            <span>{ride.date} at {ride.time}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 mb-4">
+                          <Avatar className="h-10 w-10 border-2 border-muted">
+                            <AvatarFallback>{ride.driver[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{ride.driver}</p>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Star className="mr-1 h-4 w-4 fill-yellow-400 stroke-yellow-400" />
+                              <span>4.9</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <p className="text-lg font-bold">${ride.price}</p>
+                          <Button size="sm" variant="outline">Book Similar</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </DashboardLayout>

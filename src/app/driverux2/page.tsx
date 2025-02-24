@@ -116,10 +116,10 @@ export default function DriverUX2() {
         {/* Content Layout adapts to device */}
         <div className={cn(
           "grid gap-6",
-          isDesktop ? "grid-cols-3" : "grid-cols-1"
+          isDesktop ? "grid-cols-1" : "grid-cols-1"
         )}>
           {/* Today's Rides */}
-          <Card className={cn(isDesktop && "col-span-2")}>
+          <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div>
@@ -182,110 +182,116 @@ export default function DriverUX2() {
             </CardContent>
           </Card>
 
-          {/* Recent Chats */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-semibold">Recent Chats</CardTitle>
-                  <CardDescription>Stay connected with your customers</CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
-                  <Link href="/driver/messages">
-                    View All
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className={cn(
-                "divide-y",
-                isMobile ? "max-h-[200px]" : "max-h-[300px]"
-              )}>
-                {recentChats.map((chat) => {
-                  const otherParticipant = chat.participants.find(p => p.type !== "driver");
-                  const lastMessage = dummyCommunication.messages
-                    .filter(m => m.conversation_id === chat.id)
-                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-
-                  return (
-                    <Link 
-                      key={chat.id} 
-                      href={`/driver/messages?chat=${chat.id}`}
-                      className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
-                    >
-                      <Avatar>
-                        <AvatarImage src={otherParticipant?.avatar} />
-                        <AvatarFallback>{otherParticipant?.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{otherParticipant?.name}</p>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(lastMessage?.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {lastMessage?.message}
-                        </p>
-                      </div>
+          {/* Lower section grid */}
+          <div className={cn(
+            "grid gap-6",
+            isDesktop ? "grid-cols-2" : "grid-cols-1"
+          )}>
+            {/* Earnings Overview */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-semibold">Earnings</CardTitle>
+                    <CardDescription>Your earnings overview</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+                    <Link href="/driver/earnings">
+                      View All
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
-                  );
-                })}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          {/* Earnings Overview */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-semibold">Earnings</CardTitle>
-                  <CardDescription>Your earnings overview</CardDescription>
+                  </Button>
                 </div>
-                <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
-                  <Link href="/driver/earnings">
-                    View All
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ScrollArea className={cn(
-                "divide-y",
-                isMobile ? "max-h-[200px]" : "max-h-[300px]"
-              )}>
-                <div className="p-4">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">Today</p>
-                        <p className="text-xs text-muted-foreground">{driver.todayRides.length} rides</p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className={cn(
+                  "divide-y",
+                  isMobile ? "max-h-[200px]" : "max-h-[300px]"
+                )}>
+                  <div className="p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">Today</p>
+                          <p className="text-xs text-muted-foreground">{driver.todayRides.length} rides</p>
+                        </div>
+                        <p className="text-lg font-bold text-primary">${driver.earnings.today}</p>
                       </div>
-                      <p className="text-lg font-bold text-primary">${driver.earnings.today}</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">This Week</p>
-                        <p className="text-xs text-muted-foreground">32 rides</p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">This Week</p>
+                          <p className="text-xs text-muted-foreground">32 rides</p>
+                        </div>
+                        <p className="text-lg font-bold text-primary">${driver.earnings.week}</p>
                       </div>
-                      <p className="text-lg font-bold text-primary">${driver.earnings.week}</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">This Month</p>
-                        <p className="text-xs text-muted-foreground">128 rides</p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">This Month</p>
+                          <p className="text-xs text-muted-foreground">128 rides</p>
+                        </div>
+                        <p className="text-lg font-bold text-primary">${driver.earnings.month}</p>
                       </div>
-                      <p className="text-lg font-bold text-primary">${driver.earnings.month}</p>
                     </div>
                   </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            {/* Recent Chats */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-semibold">Recent Chats</CardTitle>
+                    <CardDescription>Stay connected with your customers</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+                    <Link href="/driver/messages">
+                      View All
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className={cn(
+                  "divide-y",
+                  isMobile ? "max-h-[200px]" : "max-h-[300px]"
+                )}>
+                  {recentChats.map((chat) => {
+                    const otherParticipant = chat.participants.find(p => p.type !== "driver");
+                    const lastMessage = dummyCommunication.messages
+                      .filter(m => m.conversation_id === chat.id)
+                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+                    return (
+                      <Link 
+                        key={chat.id} 
+                        href={`/driver/messages?chat=${chat.id}`}
+                        className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
+                      >
+                        <Avatar>
+                          <AvatarImage src={otherParticipant?.avatar} />
+                          <AvatarFallback>{otherParticipant?.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium">{otherParticipant?.name}</p>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(lastMessage?.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {lastMessage?.message}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </DashboardLayout>
