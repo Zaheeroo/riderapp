@@ -282,28 +282,6 @@ export default function CustomerUX2() {
             </ScrollArea>
           </div>
         </div>
-
-        {/* Mobile-only Quick Actions */}
-        {isMobile && (
-          <Card>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
-                  <MessageSquare className="h-5 w-5 mb-2" />
-                  <span className="text-xs">Messages</span>
-                </Button>
-                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
-                  <MapPin className="h-5 w-5 mb-2" />
-                  <span className="text-xs">Locations</span>
-                </Button>
-                <Button variant="outline" className="flex flex-col items-center p-4 h-auto">
-                  <Menu className="h-5 w-5 mb-2" />
-                  <span className="text-xs">More</span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </DashboardLayout>
   );

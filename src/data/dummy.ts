@@ -33,60 +33,36 @@ export const dummyCustomers = [
 export const dummyCustomersExtended = [
   {
     id: 1,
-    name: "John Smith",
-    email: "john@example.com",
-    phone: "+1 234-567-8900",
+    name: "Emma Wilson",
+    email: "emma.w@example.com",
+    phone: "+1 (555) 987-6543",
     status: "Active",
-    location: "Jaco Beach",
-    joinDate: "2024-01-15",
-    totalRides: 8,
-    totalSpent: 680.00,
-    lastRide: "2024-02-25",
-    preferredPayment: "Credit Card",
+    location: "Downtown",
     rating: 4.9,
-    preferences: {
-      language: "English",
-      currency: "USD",
-      notifications: "Email + SMS"
-    }
+    totalRides: 45,
+    totalSpent: 1200
   },
   {
     id: 2,
-    name: "Emma Wilson",
-    email: "emma@example.com",
-    phone: "+1 234-567-8901",
-    status: "Active",
-    location: "Tamarindo",
-    joinDate: "2024-01-20",
-    totalRides: 5,
-    totalSpent: 475.00,
-    lastRide: "2024-02-25",
-    preferredPayment: "PayPal",
-    rating: 4.8,
-    preferences: {
-      language: "English",
-      currency: "USD",
-      notifications: "Email"
-    }
+    name: "Michael Brown",
+    email: "michael.b@example.com",
+    phone: "+1 (555) 876-5432",
+    status: "Active", 
+    location: "Suburbs",
+    rating: 4.7,
+    totalRides: 32,
+    totalSpent: 850
   },
   {
     id: 3,
-    name: "Michael Brown",
-    email: "michael@example.com",
-    phone: "+1 234-567-8902",
+    name: "Sophie Chen",
+    email: "sophie.c@example.com",
+    phone: "+1 (555) 765-4321",
     status: "Inactive",
-    location: "Manuel Antonio",
-    joinDate: "2024-02-01",
-    totalRides: 2,
-    totalSpent: 90.00,
-    lastRide: "2024-02-25",
-    preferredPayment: "Cash",
-    rating: 4.7,
-    preferences: {
-      language: "Spanish",
-      currency: "USD",
-      notifications: "SMS"
-    }
+    location: "City Center",
+    rating: 4.8,
+    totalRides: 28,
+    totalSpent: 720
   }
 ];
 
@@ -122,30 +98,112 @@ export const dummyDrivers = [
   }
 ];
 
+export const dummyDriversExtended = [
+  {
+    id: 1,
+    name: "Carlos Martinez",
+    email: "carlos.m@example.com",
+    phone: "+1 (555) 123-4567",
+    status: "Active",
+    vehicle: {
+      model: "Toyota Fortuner",
+      color: "Silver",
+      year: "2023",
+      plate: "ABC 123"
+    },
+    rating: 4.8,
+    totalRides: 1250,
+    earnings: {
+      today: 180,
+      week: 1200,
+      month: 4500
+    }
+  },
+  {
+    id: 2,
+    name: "Maria Rodriguez",
+    email: "maria.r@example.com", 
+    phone: "+1 (555) 234-5678",
+    status: "Active",
+    vehicle: {
+      model: "Honda CR-V",
+      color: "White",
+      year: "2022",
+      plate: "XYZ 789"
+    },
+    rating: 4.9,
+    totalRides: 980,
+    earnings: {
+      today: 150,
+      week: 950,
+      month: 3800
+    }
+  },
+  {
+    id: 3,
+    name: "John Smith",
+    email: "john.s@example.com",
+    phone: "+1 (555) 345-6789", 
+    status: "Inactive",
+    vehicle: {
+      model: "Ford Explorer",
+      color: "Black",
+      year: "2021",
+      plate: "DEF 456"
+    },
+    rating: 4.7,
+    totalRides: 850,
+    earnings: {
+      today: 0,
+      week: 800,
+      month: 3200
+    }
+  }
+];
+
 export const dummyAdminStats = {
   overview: {
-    totalDrivers: 25,
-    activeDrivers: 18,
-    totalCustomers: 450,
-    totalRides: 1250
+    totalDrivers: 128,
+    activeDrivers: 85,
+    driverPercentageChange: 12,
+    totalCustomers: 2856,
+    activeCustomers: 1463,
+    customerPercentageChange: 8,
+    activeChats: 24,
+    attentionNeeded: 8,
+    chatPercentageChange: 15
+  },
+  earnings: {
+    month: 45231,
+    monthChange: 12234,
+    percentageChange: 10
   },
   recentRides: [
     {
       id: "ride-001",
-      customer: "John Smith",
-      driver: "Carlos M.",
-      from: "Jaco Beach",
-      to: "Manuel Antonio",
-      date: "2024-02-25",
-      status: "confirmed",
-      price: 85.00
+      customerName: "John Smith",
+      destination: "Manuel Antonio",
+      status: "In Progress",
+      time: "10:00 AM",
+      driverName: "Carlos M."
+    },
+    {
+      id: "ride-002",
+      customerName: "Emma Wilson",
+      destination: "Tamarindo",
+      status: "Upcoming",
+      time: "2:30 PM",
+      driverName: "Maria R."
+    },
+    {
+      id: "ride-003",
+      customerName: "Michael Brown",
+      destination: "Liberia Airport",
+      status: "Completed",
+      time: "9:15 AM",
+      driverName: "John S."
     }
   ],
-  earnings: {
-    today: 2450.00,
-    week: 12500.00,
-    month: 45000.00
-  },
   popularRoutes: [
     {
       route: "Liberia Airport - Tamarindo",
