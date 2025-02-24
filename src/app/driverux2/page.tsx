@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Custom hook for device detection
 function useDeviceType() {
@@ -39,12 +40,29 @@ function useDeviceType() {
   return { isMobile, isTablet, isDesktop };
 }
 
+// Add type definitions
+type RideStatus = "Confirmed" | "In Progress" | "Completed";
+type RideStatusMap = {
+  [key: string]: RideStatus;
+};
+
 export default function DriverUX2() {
   const { isMobile, isTablet, isDesktop } = useDeviceType();
   const driver = dummyDrivers[0]; // Using first driver as example
   const recentChats = dummyCommunication.conversations
     .filter(conv => conv.participants.some(p => p.type === "driver"))
     .slice(0, 3); // Only show 3 most recent chats
+
+  // Add state for ride statuses with proper typing
+  const [rideStatuses, setRideStatuses] = useState<RideStatusMap>({});
+
+  // Function to handle status change with proper typing
+  const handleStatusChange = (rideId: string, newStatus: RideStatus) => {
+    setRideStatuses(prev => ({
+      ...prev,
+      [rideId]: newStatus
+    }));
+  };
 
   return (
     <DashboardLayout userType="driver" showMobileHeader={false}>
@@ -142,8 +160,12 @@ export default function DriverUX2() {
                 {driver.todayRides.map((ride) => (
                   <div key={ride.id} className="p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center justify-between mb-2">
-                      <Badge variant={ride.status === "Upcoming" ? "secondary" : "default"}>
-                        {ride.status}
+                      <Badge variant={
+                        (rideStatuses[ride.id] || ride.status) === "Completed" ? "default" :
+                        (rideStatuses[ride.id] || ride.status) === "In Progress" ? "secondary" :
+                        "outline"
+                      }>
+                        {rideStatuses[ride.id] || ride.status}
                       </Badge>
                       <span className="text-sm font-medium">${ride.price}</span>
                     </div>
@@ -167,14 +189,26 @@ export default function DriverUX2() {
                       </div>
                     </div>
 
-                    <div className="flex justify-end gap-2 mt-3">
+                    <div className="mt-4 flex justify-end gap-2">
                       <Button size="sm" variant="outline">
                         <Phone className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="outline">
                         <MessageSquare className="h-4 w-4" />
                       </Button>
-                      <Button size="sm">Start Ride</Button>
+                      <Select
+                        value={rideStatuses[ride.id] || ride.status}
+                        onValueChange={(value) => handleStatusChange(ride.id, value as RideStatus)}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue placeholder="Change Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Confirmed">Confirmed</SelectItem>
+                          <SelectItem value="In Progress">Start Ride</SelectItem>
+                          <SelectItem value="Completed">Complete Ride</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 ))}

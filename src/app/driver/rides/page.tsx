@@ -1,10 +1,32 @@
+"use client";
+
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dummyDriverRides } from "@/data/dummy";
 import { Clock, MapPin, Phone, Star } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+
+// Add type definitions
+type RideStatus = "Confirmed" | "In Progress" | "Completed";
+type RideStatusMap = {
+  [key: string]: RideStatus;
+};
 
 export default function DriverRidesPage() {
+  // Add state for ride statuses
+  const [rideStatuses, setRideStatuses] = useState<RideStatusMap>({});
+
+  // Function to handle status change
+  const handleStatusChange = (rideId: string, newStatus: RideStatus) => {
+    setRideStatuses(prev => ({
+      ...prev,
+      [rideId]: newStatus
+    }));
+  };
+
   return (
     <DashboardLayout userType="driver">
       <div className="space-y-8">
@@ -37,9 +59,13 @@ export default function DriverRidesPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-500/10 text-blue-500">
-                            {ride.status}
-                          </div>
+                          <Badge variant={
+                            (rideStatuses[ride.id] || ride.status) === "Completed" ? "default" :
+                            (rideStatuses[ride.id] || ride.status) === "In Progress" ? "secondary" :
+                            "outline"
+                          }>
+                            {rideStatuses[ride.id] || ride.status}
+                          </Badge>
                           <p className="mt-1 text-lg font-semibold">${ride.price}</p>
                         </div>
                       </div>
@@ -62,8 +88,20 @@ export default function DriverRidesPage() {
                     </div>
                   </div>
                   <div className="mt-4 flex justify-end space-x-2">
-                    <Button variant="outline" size="sm">Contact Customer</Button>
-                    <Button size="sm">Start Ride</Button>
+                    <Button variant="outline">Contact Customer</Button>
+                    <Select
+                      value={rideStatuses[ride.id] || ride.status}
+                      onValueChange={(value) => handleStatusChange(ride.id, value as RideStatus)}
+                    >
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Change Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Confirmed">Confirmed</SelectItem>
+                        <SelectItem value="In Progress">Start Ride</SelectItem>
+                        <SelectItem value="Completed">Complete Ride</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>
@@ -94,9 +132,7 @@ export default function DriverRidesPage() {
                           )}
                         </div>
                         <div className="text-right">
-                          <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-500/10 text-green-500">
-                            {ride.status}
-                          </div>
+                          <Badge variant="default">{ride.status}</Badge>
                           <p className="mt-1 text-lg font-semibold">${ride.price}</p>
                         </div>
                       </div>

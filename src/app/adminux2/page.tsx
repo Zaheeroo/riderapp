@@ -29,6 +29,42 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+type Ride = {
+  id: string;
+  customerName: string;
+  destination: string;
+  status: string;
+  time: string;
+  driverName: string;
+};
+
+const rides: Ride[] = [
+  {
+    id: "1",
+    customerName: "John Smith",
+    destination: "Manuel Antonio",
+    status: "Confirmed",
+    time: "10:00 AM",
+    driverName: "Carlos M."
+  },
+  {
+    id: "2",
+    customerName: "Emma Wilson",
+    destination: "Tamarindo",
+    status: "In Progress",
+    time: "11:30 AM",
+    driverName: "Maria R."
+  },
+  {
+    id: "3",
+    customerName: "Michael Brown",
+    destination: "Jaco Beach",
+    status: "Completed",
+    time: "2:00 PM",
+    driverName: "Juan P."
+  }
+];
+
 export default function AdminUX2() {
   const { isMobile } = useDeviceType();
   const recentChats = dummyCommunication.conversations
@@ -38,69 +74,154 @@ export default function AdminUX2() {
   const renderRidesManagement = () => (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-lg font-semibold">Rides Management</CardTitle>
             <CardDescription>Monitor and manage all rides</CardDescription>
           </div>
-          <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
-            <Link href="/admin/rides">
-              View All
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Search rides..."
+              className="w-full sm:w-[300px]"
+            />
+            <Button variant="outline">
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+              <Link href="/admin/rides">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="max-h-[300px]">
-          <div className="divide-y">
-            {dummyAdminStats.recentRides?.map((ride) => (
-              <div key={ride.id} className="p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="font-medium">{ride.customerName}</p>
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <MapPin className="mr-1 h-3 w-3" />
-                      {ride.destination}
+        <ScrollArea className={cn(
+          isMobile ? "max-h-[300px]" : "max-h-[400px]"
+        )}>
+          {isMobile ? (
+            // Mobile view - Card layout
+            <div className="divide-y">
+              {dummyAdminStats.recentRides?.map((ride) => (
+                <div key={ride.id} className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{ride.customerName}</p>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <MapPin className="mr-1 h-3 w-3" />
+                        {ride.destination}
+                      </div>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="mr-1 h-3 w-3" />
+                        {ride.time}
+                      </div>
+                    </div>
+                    <Badge variant={
+                      ride.status === "In Progress" ? "default" :
+                      ride.status === "Completed" ? "secondary" :
+                      "outline"
+                    }>
+                      {ride.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Driver: {ride.driverName}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Select defaultValue={ride.driverName}>
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue placeholder="Assign Driver" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {dummyDriversExtended.map((driver) => (
+                            <SelectItem key={driver.id} value={driver.name}>
+                              <div className="flex flex-col">
+                                <span>{driver.name}</span>
+                                <span className="text-xs text-muted-foreground">{driver.vehicle.model}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button variant="outline" size="sm">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <Badge variant={
-                    ride.status === "In Progress" ? "default" :
-                    ride.status === "Completed" ? "secondary" :
-                    "outline"
-                  }>
-                    {ride.status}
-                  </Badge>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-muted-foreground">
-                    <Clock className="mr-1 h-3 w-3" />
-                    <span>{ride.time}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Select defaultValue={ride.driverName}>
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Assign Driver" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dummyDriversExtended.map((driver) => (
-                          <SelectItem key={driver.id} value={driver.name}>
-                            <div className="flex flex-col">
-                              <span>{driver.name}</span>
-                              <span className="text-xs text-muted-foreground">{driver.vehicle.model}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button variant="outline" size="sm">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            // Desktop view - Table layout
+            <div className="min-w-[800px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Route</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Driver</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dummyAdminStats.recentRides?.map((ride) => (
+                    <TableRow key={ride.id}>
+                      <TableCell>
+                        <p className="font-medium">{ride.customerName}</p>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center text-sm">
+                          <MapPin className="mr-1 h-3 w-3" />
+                          {ride.destination}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center text-sm">
+                          <Clock className="mr-1 h-3 w-3" />
+                          {ride.time}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Select defaultValue={ride.driverName}>
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue placeholder="Assign Driver" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {dummyDriversExtended.map((driver) => (
+                              <SelectItem key={driver.id} value={driver.name}>
+                                <div className="flex flex-col">
+                                  <span>{driver.name}</span>
+                                  <span className="text-xs text-muted-foreground">{driver.vehicle.model}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          ride.status === "In Progress" ? "default" :
+                          ride.status === "Completed" ? "secondary" :
+                          "outline"
+                        }>
+                          {ride.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </ScrollArea>
       </CardContent>
     </Card>
