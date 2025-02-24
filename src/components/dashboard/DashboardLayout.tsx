@@ -2,10 +2,11 @@
 
 import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Car, Home, LogOut, Menu, Users, Calendar, X, MessageSquare } from "lucide-react";
+import { Car, Home, LogOut, Menu, Users, Calendar, X, MessageSquare, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { usePathname, useRouter } from "next/navigation";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -15,6 +16,14 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children, userType, showMobileHeader = true }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Check if current page is a subpage
+  const isSubpage = pathname?.split('/').length > 2;
+
+  // Get parent route for back navigation
+  const parentRoute = pathname?.split('/').slice(0, -1).join('/');
 
   const navigation = {
     admin: [
@@ -114,14 +123,25 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
       )}>
         {showMobileHeader && (
           <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-            <Button 
-              variant="ghost" 
-              className="md:hidden -m-2.5 p-2.5 text-foreground"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <span className="sr-only">Open sidebar</span>
-              <Menu className="h-5 w-5" />
-            </Button>
+            {isSubpage ? (
+              <Button 
+                variant="ghost" 
+                className="-m-2.5 p-2.5 text-foreground"
+                onClick={() => router.push(parentRoute)}
+              >
+                <span className="sr-only">Go back</span>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="md:hidden -m-2.5 p-2.5 text-foreground"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <span className="sr-only">Open sidebar</span>
+                <Menu className="h-5 w-5" />
+              </Button>
+            )}
 
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
               <div className="flex flex-1"></div>
