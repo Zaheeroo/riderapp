@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -146,6 +147,7 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
               <div className="flex flex-1"></div>
               <div className="flex items-center gap-x-4 lg:gap-x-6">
+                <ThemeToggle />
                 {/* Profile dropdown can be added here */}
               </div>
             </div>
