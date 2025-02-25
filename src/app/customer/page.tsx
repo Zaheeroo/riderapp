@@ -47,7 +47,7 @@ export default function CustomerDashboard() {
     .slice(0, 3); // Only show 3 most recent chats
 
   return (
-    <DashboardLayout userType="customer" showMobileHeader={false}>
+    <DashboardLayout userType="customer">
       {/* Main Container with adaptive max width based on device */}
       <div className={cn(
         "mx-auto px-4 space-y-6",

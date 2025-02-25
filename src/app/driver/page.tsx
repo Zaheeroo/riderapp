@@ -65,7 +65,7 @@ export default function DriverDashboard() {
   };
 
   return (
-    <DashboardLayout userType="driver" showMobileHeader={false}>
+    <DashboardLayout userType="driver">
       {/* Main Container with adaptive max width based on device */}
       <div className={cn(
         "mx-auto px-4 space-y-6",

@@ -595,7 +595,7 @@ export default function AdminDashboard() {
   );
 
   return (
-    <DashboardLayout userType="admin" showMobileHeader={false}>
+    <DashboardLayout userType="admin">
       {/* Main Container with adaptive max width based on device */}
       <div className={cn(
         "mx-auto px-4 space-y-6",
