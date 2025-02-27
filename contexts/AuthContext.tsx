@@ -29,6 +29,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       const userRole = user.user_metadata?.user_type || 'customer';
+      console.log('Syncing user role:', userRole);
+      console.log('User metadata:', user.user_metadata);
+      
       // Set role in localStorage
       localStorage.setItem('userRole', userRole);
       
@@ -39,7 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         secure: window.location.protocol === 'https:',
         sameSite: 'lax'
       });
-      console.log('Synced user role to cookie:', userRole);
+      console.log('Role synced successfully');
     } catch (error) {
       console.error('Error syncing user role:', error);
     }
@@ -50,24 +53,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const initialize = async () => {
       try {
+        console.log('Initializing auth context...');
         // Get initial session
-        const { data: { session } } = await supabaseClient.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Error getting initial session:', sessionError);
+          throw sessionError;
+        }
+
+        console.log('Initial session:', session ? 'exists' : 'none');
+        if (session?.user) {
+          console.log('Initial user:', session.user);
+        }
+
         if (mounted) {
           setUser(session?.user || null);
+          if (session?.user) {
+            syncUserRole(session.user);
+          }
           setLoading(false);
         }
 
         // Listen for auth changes
         const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-          async (_event, session) => {
+          async (event, session) => {
+            console.log('Auth state change:', event);
+            console.log('New session:', session ? 'exists' : 'none');
+            
             if (mounted) {
               setUser(session?.user || null);
+              if (session?.user) {
+                syncUserRole(session.user);
+              }
               setLoading(false);
             }
           }
         );
 
         return () => {
+          console.log('Cleaning up auth context...');
           mounted = false;
           subscription?.unsubscribe();
         };
@@ -98,11 +123,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const safeSignIn = async (data: any) => {
     try {
+      console.log('Attempting sign in...');
       const result = await supabaseClient.auth.signInWithPassword(data);
-      if (result.error) throw result.error;
+      
+      if (result.error) {
+        console.error('Sign in error:', result.error);
+        throw result.error;
+      }
+
+      console.log('Sign in successful:', result.data);
+      
       if (result.data?.user) {
+        console.log('Syncing user role after sign in...');
         syncUserRole(result.data.user);
       }
+      
       return result;
     } catch (error) {
       console.error('Error during sign in:', error);
@@ -112,11 +147,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const safeSignOut = async () => {
     try {
+      console.log('Attempting sign out...');
       const { error } = await supabaseClient.auth.signOut();
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Sign out error:', error);
+        throw error;
+      }
+      
       // Clear role cookie and localStorage on sign out
+      console.log('Clearing auth data...');
       Cookies.remove('userRole', { path: '/' });
       localStorage.removeItem('userRole');
+      
       return { error: null };
     } catch (error) {
       console.error('Error during sign out:', error);

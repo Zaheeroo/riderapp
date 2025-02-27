@@ -27,8 +27,11 @@ export default function LoginPage() {
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
+        console.log('Initial session check:', session ? 'Session exists' : 'No session');
         if (session?.user) {
+          console.log('Session user:', session.user);
           const userRole = session.user.user_metadata?.user_type || 'customer';
+          console.log('User role from session:', userRole);
           router.push(`/${userRole}`);
         }
       } catch (error) {
@@ -51,25 +54,48 @@ export default function LoginPage() {
     setError('');
     
     try {
+      console.log('Attempting sign in...');
       // Sign in the user
-      const { error: signInError, data } = await signIn({ email, password });
+      const { error: signInError, data: signInData } = await signIn({ email, password });
       
       if (signInError) {
+        console.error('Sign in error:', signInError);
         throw signInError;
       }
 
+      console.log('Sign in successful:', signInData);
+
+      // Wait a moment for the session to be fully established
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Get user metadata to determine role
-      const { data: { user } } = await supabaseClient.auth.getUser();
+      console.log('Fetching user data...');
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+      
+      if (userError) {
+        console.error('Error fetching user:', userError);
+        throw userError;
+      }
+
+      console.log('User data received:', user);
+      
       if (!user) {
+        console.error('No user data received after successful sign in');
         throw new Error('Failed to get user data after sign in');
       }
 
       const userRole = user.user_metadata?.user_type || 'customer';
+      console.log('Determined user role:', userRole);
+      
+      // Double check session is established
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      console.log('Session after sign in:', session ? 'Session exists' : 'No session');
       
       // Redirect based on user type from metadata
+      console.log(`Redirecting to /${userRole}`);
       router.push(`/${userRole}`);
     } catch (error: any) {
-      console.error('Sign in error:', error);
+      console.error('Sign in process error:', error);
       if (error.message?.includes('Invalid login credentials')) {
         setError('Invalid email or password. Please try again.');
       } else if (error.message?.includes('network')) {
