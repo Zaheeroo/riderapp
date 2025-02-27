@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabaseClient } from '../lib/supabase-client';
+import { createClient } from '../lib/supabase/client';
 import Cookies from 'js-cookie';
 
 interface AuthContextType {
@@ -22,15 +22,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const supabase = createClient();
 
   // Sync user role from metadata to localStorage and cookies
-  const syncUserRole = (user: any) => {
+  const syncUserRole = async (user: any) => {
     if (typeof window === 'undefined' || !user) return;
     
     try {
       const userRole = user.user_metadata?.user_type || 'customer';
       console.log('Syncing user role:', userRole);
-      console.log('User metadata:', user.user_metadata);
       
       // Set role in localStorage
       localStorage.setItem('userRole', userRole);
@@ -40,8 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         path: '/', 
         expires: 7,
         secure: true,
-        sameSite: 'strict',
-        domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
+        sameSite: 'lax'
       });
       console.log('Role synced successfully');
     } catch (error) {
@@ -49,82 +48,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const safeSignIn = async (data: any) => {
-    try {
-      console.log('Attempting sign in...');
-      const result = await supabaseClient.auth.signInWithPassword(data);
-      
-      if (result.error) {
-        console.error('Sign in error:', result.error);
-        throw result.error;
-      }
-
-      if (!result.data?.session) {
-        console.error('No session data in sign in response');
-        throw new Error('Unable to establish session after successful sign in');
-      }
-
-      // Set user state immediately
-      setUser(result.data.session.user);
-
-      // If we have user data in the result, sync it
-      if (result.data.session.user) {
-        console.log('Sign in successful, syncing user role...');
-        await syncUserRole(result.data.session.user);
-      }
-      
-      // Return the full result including session
-      return result;
-    } catch (error) {
-      console.error('Error during sign in:', error);
-      return { error, data: null };
-    }
-  };
-
   useEffect(() => {
-    let mounted = true;
-
     const initialize = async () => {
       try {
-        console.log('Initializing auth context...');
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // Get initial session
-        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Error getting initial session:', sessionError);
-          throw sessionError;
-        }
-
-        if (session?.user && mounted) {
-          console.log('Found user in initial session');
+        if (session?.user) {
           setUser(session.user);
           await syncUserRole(session.user);
         } else {
-          console.log('No user in initial session');
           setUser(null);
-          // Clear role data
           if (typeof window !== 'undefined') {
             Cookies.remove('userRole', { path: '/' });
             localStorage.removeItem('userRole');
           }
         }
 
-        // Listen for auth changes
-        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log('Auth state change:', event);
-            
-            if (!mounted) return;
-
+            console.log('Auth state change:', event, session?.user?.email);
             if (session?.user) {
-              console.log('User found in auth change:', session.user);
               setUser(session.user);
               await syncUserRole(session.user);
             } else {
-              console.log('No user in auth change');
               setUser(null);
-              // Clear role data
               if (typeof window !== 'undefined') {
                 Cookies.remove('userRole', { path: '/' });
                 localStorage.removeItem('userRole');
@@ -134,50 +81,92 @@ export function AuthProvider({ children }: AuthProviderProps) {
         );
 
         return () => {
-          console.log('Cleaning up auth context...');
-          mounted = false;
           subscription?.unsubscribe();
         };
       } catch (error) {
         console.error('Error initializing auth:', error);
-        if (mounted) {
-          setError(error instanceof Error ? error : new Error('Unknown error'));
-        }
+        setError(error instanceof Error ? error : new Error('Unknown error'));
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     initialize();
   }, []);
 
-  // Create empty functions for SSR
-  const noOpPromise = async () => ({ error: null, data: null });
-
-  // Safe auth functions with error handling
-  const safeSignUp = async (data: any) => {
+  const signIn = async (data: any) => {
     try {
-      return await supabaseClient.auth.signUp(data);
+      console.log('Starting sign in process...');
+      
+      // Clear any existing session first
+      await signOut();
+      
+      // Wait a moment for the signout to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log('Attempting sign in with credentials...');
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword(data);
+      
+      if (signInError) {
+        console.error('Initial sign in error:', signInError);
+        throw signInError;
+      }
+
+      // If no session, try to get it explicitly
+      if (!signInData?.session) {
+        console.log('No immediate session, attempting to retrieve...');
+        
+        // Try multiple times with increasing delays
+        for (let i = 0; i < 3; i++) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+          
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            console.log('Session retrieved on attempt', i + 1);
+            signInData.session = session;
+            break;
+          }
+          console.log('Session retrieval attempt', i + 1, 'failed');
+        }
+      }
+
+      if (!signInData?.session) {
+        throw new Error('Unable to establish session after multiple attempts');
+      }
+
+      console.log('Sign in successful, session established');
+      setUser(signInData.session.user);
+      
+      // Sync user role with a delay to ensure cookies are set
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await syncUserRole(signInData.session.user);
+      
+      return { data: signInData, error: null };
+    } catch (error) {
+      console.error('Error during sign in process:', error);
+      return { error, data: null };
+    }
+  };
+
+  const signUp = async (data: any) => {
+    try {
+      const { data: signUpData, error } = await supabase.auth.signUp(data);
+      if (error) throw error;
+      return { data: signUpData, error: null };
     } catch (error) {
       console.error('Error during sign up:', error);
       return { error, data: null };
     }
   };
 
-  const safeSignOut = async () => {
+  const signOut = async () => {
     try {
-      console.log('Attempting sign out...');
-      const { error } = await supabaseClient.auth.signOut();
+      const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Sign out error:', error);
         throw error;
       }
       
-      // Clear role cookie and localStorage on sign out
-      console.log('Clearing auth data...');
       Cookies.remove('userRole', { path: '/' });
       localStorage.removeItem('userRole');
       
@@ -189,18 +178,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const value = {
-    signUp: typeof window === 'undefined' ? noOpPromise : safeSignUp,
-    signIn: safeSignIn,
-    signOut: safeSignOut,
+    signUp,
+    signIn,
+    signOut,
     user,
     loading
   };
-
-  // If there was an error initializing the auth context, render an error message
-  if (error && !loading && typeof window !== 'undefined') {
-    console.error('Auth context error:', error);
-    // Continue rendering the app anyway, just with no user
-  }
 
   return (
     <AuthContext.Provider value={value}>

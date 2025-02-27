@@ -87,13 +87,13 @@ try {
         }
       }
     );
-    console.log('Supabase client initialized successfully');
-  } else {
+      console.log('Supabase client initialized successfully');
+    } else {
     console.warn('Using dummy client - environment variables missing or not in browser');
-    clientInstance = dummyClient;
-  }
-} catch (error) {
-  console.error('Error initializing Supabase client:', error);
+      clientInstance = dummyClient;
+    }
+  } catch (error) {
+    console.error('Error initializing Supabase client:', error);
   clientInstance = dummyClient;
 }
 
