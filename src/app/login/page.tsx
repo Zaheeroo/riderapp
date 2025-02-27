@@ -22,21 +22,22 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const router = useRouter();
 
-  // Check if Supabase is available
+  // Check if user is already authenticated
   useEffect(() => {
-    const checkSupabase = async () => {
+    const checkSession = async () => {
       try {
-        // Try to get session as a simple test
-        await supabaseClient.auth.getSession();
-        setSupabaseAvailable(true);
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session?.user) {
+          const userRole = session.user.user_metadata?.user_type || 'customer';
+          router.push(`/${userRole}`);
+        }
       } catch (error) {
-        console.error('Supabase connection error:', error);
-        setSupabaseAvailable(false);
+        console.error('Session check error:', error);
       }
     };
     
-    checkSupabase();
-  }, []);
+    checkSession();
+  }, [router]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +52,7 @@ export default function LoginPage() {
     
     try {
       // Sign in the user
-      const { error: signInError, data: signInData } = await signIn({ email, password });
+      const { error: signInError, data } = await signIn({ email, password });
       
       if (signInError) {
         throw signInError;
@@ -59,51 +60,16 @@ export default function LoginPage() {
 
       // Get user metadata to determine role
       const { data: { user } } = await supabaseClient.auth.getUser();
-      
-      // Debug logging for oliverburgos@gmail.com
-      if (email === 'oliverburgos@gmail.com') {
-        console.log('Found oliverburgos@gmail.com user:');
-        console.log('Full user object:', JSON.stringify(user, null, 2));
-        console.log('Email:', user?.email);
-        console.log('User ID:', user?.id);
-        console.log('Raw metadata:', JSON.stringify(user?.user_metadata, null, 2));
+      if (!user) {
+        throw new Error('Failed to get user data after sign in');
       }
-      
-      const userType = user?.user_metadata?.user_type || 'customer';
-      console.log('Determined user type:', userType);
-      
-      // Store the user role in localStorage and cookie
-      if (typeof window !== 'undefined') {
-        console.log(`Setting user role to: ${userType}`);
-        localStorage.setItem('userRole', userType);
-        // Set cookie that will be accessible by the middleware
-        Cookies.set('userRole', userType, { 
-          path: '/', 
-          expires: 7, 
-          secure: window.location.protocol === 'https:',
-          sameSite: 'lax'
-        });
 
-        // Debug: Check stored values
-        console.log('Stored values after setting:');
-        console.log('LocalStorage role:', localStorage.getItem('userRole'));
-        console.log('Cookie role:', Cookies.get('userRole'));
-      }
+      const userRole = user.user_metadata?.user_type || 'customer';
       
       // Redirect based on user type from metadata
-      console.log(`Redirecting to /${userType}`);
-      if (userType === 'admin') {
-        console.log('User is admin, redirecting to /admin');
-        router.push('/admin');
-      } else if (userType === 'driver') {
-        console.log('User is driver, redirecting to /driver');
-        router.push('/driver');
-      } else {
-        console.log('User is customer, redirecting to /customer');
-        router.push('/customer');
-      }
+      router.push(`/${userRole}`);
     } catch (error: any) {
-      // Handle specific error types
+      console.error('Sign in error:', error);
       if (error.message?.includes('Invalid login credentials')) {
         setError('Invalid email or password. Please try again.');
       } else if (error.message?.includes('network')) {
@@ -111,7 +77,6 @@ export default function LoginPage() {
       } else {
         setError(error.message || 'Failed to sign in. Please try again later.');
       }
-      console.error('Sign in error:', error);
     } finally {
       setLoading(false);
     }

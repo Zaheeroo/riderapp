@@ -46,55 +46,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   useEffect(() => {
-    // Only run in the browser
-    if (typeof window === 'undefined') return;
-    
-    // Get current session
-    const getInitialSession = async () => {
+    let mounted = true;
+
+    const initialize = async () => {
       try {
+        // Get initial session
         const { data: { session } } = await supabaseClient.auth.getSession();
-        setUser(session?.user || null);
-        
-        // If user is logged in, sync the role from metadata
-        if (session?.user) {
-          syncUserRole(session.user);
+        if (mounted) {
+          setUser(session?.user || null);
+          setLoading(false);
         }
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+          async (_event, session) => {
+            if (mounted) {
+              setUser(session?.user || null);
+              setLoading(false);
+            }
+          }
+        );
+
+        return () => {
+          mounted = false;
+          subscription?.unsubscribe();
+        };
       } catch (error) {
-        console.error('Error getting initial session:', error);
-        setError(error instanceof Error ? error : new Error('Unknown error'));
-      } finally {
-        setLoading(false);
+        console.error('Error initializing auth:', error);
+        if (mounted) {
+          setError(error instanceof Error ? error : new Error('Unknown error'));
+          setLoading(false);
+        }
       }
     };
 
-    try {
-      getInitialSession();
-
-      // Listen for auth changes
-      const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-        (_event, session) => {
-          setUser(session?.user || null);
-          
-          // If user is logged in, sync the role from metadata
-          if (session?.user) {
-            syncUserRole(session.user);
-          } else {
-            // If logged out, clear the role cookie and localStorage
-            Cookies.remove('userRole', { path: '/' });
-            localStorage.removeItem('userRole');
-          }
-          
-          setLoading(false);
-        }
-      );
-
-      return () => {
-        subscription?.unsubscribe();
-      };
-    } catch (error) {
-      console.error('Error setting up auth state change listener:', error);
-      setLoading(false);
-    }
+    initialize();
   }, []);
 
   // Create empty functions for SSR
@@ -113,6 +99,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const safeSignIn = async (data: any) => {
     try {
       const result = await supabaseClient.auth.signInWithPassword(data);
+      if (result.error) throw result.error;
       if (result.data?.user) {
         syncUserRole(result.data.user);
       }
@@ -125,10 +112,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const safeSignOut = async () => {
     try {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) throw error;
       // Clear role cookie and localStorage on sign out
       Cookies.remove('userRole', { path: '/' });
       localStorage.removeItem('userRole');
-      return await supabaseClient.auth.signOut();
+      return { error: null };
     } catch (error) {
       console.error('Error during sign out:', error);
       return { error };
@@ -137,8 +126,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value = {
     signUp: typeof window === 'undefined' ? noOpPromise : safeSignUp,
-    signIn: typeof window === 'undefined' ? noOpPromise : safeSignIn,
-    signOut: typeof window === 'undefined' ? noOpPromise : safeSignOut,
+    signIn: safeSignIn,
+    signOut: safeSignOut,
     user,
     loading
   };
