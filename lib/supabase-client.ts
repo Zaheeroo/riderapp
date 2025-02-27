@@ -39,34 +39,42 @@ try {
           autoRefreshToken: true,
           detectSessionInUrl: true,
           flowType: 'pkce',
+          debug: process.env.NODE_ENV === 'development',
           storage: {
             getItem: (key) => {
               try {
                 if (typeof window !== 'undefined') {
-                  return Promise.resolve(localStorage.getItem(key));
+                  const item = localStorage.getItem(key);
+                  console.log('Getting storage item:', key, item ? 'found' : 'not found');
+                  return Promise.resolve(item);
                 }
                 return Promise.resolve(null);
-              } catch {
+              } catch (error) {
+                console.error('Error getting storage item:', key, error);
                 return Promise.resolve(null);
               }
             },
             setItem: (key, value) => {
               try {
                 if (typeof window !== 'undefined') {
+                  console.log('Setting storage item:', key);
                   localStorage.setItem(key, value);
                 }
                 return Promise.resolve();
-              } catch {
+              } catch (error) {
+                console.error('Error setting storage item:', key, error);
                 return Promise.resolve();
               }
             },
             removeItem: (key) => {
               try {
                 if (typeof window !== 'undefined') {
+                  console.log('Removing storage item:', key);
                   localStorage.removeItem(key);
                 }
                 return Promise.resolve();
-              } catch {
+              } catch (error) {
+                console.error('Error removing storage item:', key, error);
                 return Promise.resolve();
               }
             },
@@ -79,6 +87,7 @@ try {
         }
       }
     );
+    console.log('Supabase client initialized successfully');
   } else {
     console.warn('Using dummy client - environment variables missing or not in browser');
     clientInstance = dummyClient;

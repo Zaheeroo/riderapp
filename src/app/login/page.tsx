@@ -68,23 +68,27 @@ export default function LoginPage() {
       console.log('Attempting sign in...');
       
       // Sign in the user
-      const { error: signInError, data: signInData } = await signIn({ email, password });
+      const { error: signInError, data } = await signIn({ email, password });
       
       if (signInError) {
         console.error('Sign in error:', signInError);
         throw signInError;
       }
 
-      console.log('Sign in successful:', signInData);
+      if (!data?.session) {
+        console.error('No session data after sign in');
+        throw new Error('Unable to establish session after successful sign in');
+      }
 
-      // Get the user from the session
-      const user = signInData?.session?.user;
+      const user = data.session.user;
       if (!user) {
         console.error('No user in session after sign in');
         throw new Error('Unable to establish session after successful sign in');
       }
 
+      console.log('Sign in successful, session established');
       console.log('User from session:', user);
+      
       const userRole = user.user_metadata?.user_type || 'customer';
       console.log('User role from metadata:', userRole);
 
@@ -93,9 +97,12 @@ export default function LoginPage() {
       Cookies.set('userRole', userRole, { 
         path: '/', 
         expires: 7,
-        secure: window.location.protocol === 'https:',
-        sameSite: 'lax'
+        secure: true,
+        sameSite: 'strict'
       });
+
+      // Wait a moment for session to be fully established
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       console.log('Role stored. Redirecting to dashboard...');
       router.push(`/${userRole}`);

@@ -59,10 +59,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw result.error;
       }
 
+      if (!result.data?.session) {
+        console.error('No session data in sign in response');
+        throw new Error('Unable to establish session after successful sign in');
+      }
+
+      // Set user state immediately
+      setUser(result.data.session.user);
+
       // If we have user data in the result, sync it
-      if (result.data?.user) {
+      if (result.data.session.user) {
         console.log('Sign in successful, syncing user role...');
-        syncUserRole(result.data.user);
+        await syncUserRole(result.data.session.user);
       }
       
       // Return the full result including session
@@ -91,10 +99,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (session?.user && mounted) {
           console.log('Found user in initial session');
           setUser(session.user);
-          syncUserRole(session.user);
+          await syncUserRole(session.user);
         } else {
           console.log('No user in initial session');
           setUser(null);
+          // Clear role data
+          if (typeof window !== 'undefined') {
+            Cookies.remove('userRole', { path: '/' });
+            localStorage.removeItem('userRole');
+          }
         }
 
         // Listen for auth changes
@@ -107,7 +120,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             if (session?.user) {
               console.log('User found in auth change:', session.user);
               setUser(session.user);
-              syncUserRole(session.user);
+              await syncUserRole(session.user);
             } else {
               console.log('No user in auth change');
               setUser(null);
