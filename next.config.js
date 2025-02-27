@@ -32,6 +32,16 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-url.supabase.co',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+  },
+  // Add redirects for auth
+  async redirects() {
+    return [
+      {
+        source: '/forgot-password',
+        destination: '/login',
+        permanent: false,
+      },
+    ];
   }
 }
 

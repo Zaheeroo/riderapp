@@ -4,24 +4,30 @@ import { NextResponse } from 'next/server';
 export async function middleware(req) {
   const res = NextResponse.next();
   
-  // Create a Supabase client configured to use cookies
-  const supabase = createMiddlewareClient({ req, res });
-  
-  // Refresh session if expired
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  return res;
+  try {
+    // Create a Supabase client configured to use cookies
+    const supabase = createMiddlewareClient({ req, res });
+    
+    // Refresh session if expired - this will update the session cookie if needed
+    await supabase.auth.getSession();
+    
+    return res;
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return res;
+  }
 }
 
+// Specify which routes should trigger this middleware
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public (public files)
+     * - public folder
      */
     '/((?!_next/static|_next/image|favicon.ico|public).*)',
   ],
-}; 
+} 
