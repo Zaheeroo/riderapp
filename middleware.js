@@ -9,7 +9,16 @@ export async function middleware(req) {
     const supabase = createMiddlewareClient({ req, res });
     
     // Refresh session if expired - this will update the session cookie if needed
-    await supabase.auth.getSession();
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Middleware session error:', error);
+    }
+
+    // If we have a session, refresh it
+    if (session) {
+      await supabase.auth.refreshSession();
+    }
     
     return res;
   } catch (error) {
