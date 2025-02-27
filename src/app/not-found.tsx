@@ -15,4 +15,12 @@ export default function NotFound() {
       </Link>
     </div>
   );
-} 
+}
+
+// These are required for Next.js error handling
+export const dynamic = 'force-static';
+export const dynamicParams = false;
+export const revalidate = false;
+export const fetchCache = 'only-no-store';
+export const runtime = 'nodejs';
+export const preferredRegion = 'auto'; 
