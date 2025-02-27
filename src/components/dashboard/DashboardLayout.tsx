@@ -8,6 +8,8 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "../../../contexts";
+import Cookies from 'js-cookie';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -19,6 +21,7 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { signOut } = useAuth();
 
   // Check if current page is a subpage
   const isSubpage = pathname?.split('/').length > 2;
@@ -46,6 +49,25 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
       { name: "My Rides", href: "/customer/rides", icon: Users },
       { name: "Messages", href: "/customer/messages", icon: MessageSquare },
     ],
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      // Clear role from localStorage
+      localStorage.removeItem('userRole');
+      
+      // Clear role cookie
+      Cookies.remove('userRole', { path: '/' });
+      
+      // Call Supabase signOut
+      await signOut();
+      
+      // Redirect to login page
+      router.push('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   return (
@@ -103,12 +125,10 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-x-3"
-                  asChild
+                  onClick={handleLogout}
                 >
-                  <Link href="/login">
-                    <LogOut className="h-6 w-6 shrink-0" />
-                    Logout
-                  </Link>
+                  <LogOut className="h-6 w-6 shrink-0" />
+                  Logout
                 </Button>
               </li>
             </ul>

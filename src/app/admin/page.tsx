@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../contexts";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -66,7 +68,43 @@ const rides: Ride[] = [
 ];
 
 export default function AdminDashboard() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const { isMobile } = useDeviceType();
+  
+  // Check if user is authenticated and has admin role
+  useEffect(() => {
+    console.log("Admin page auth check - User:", !!user, "Loading:", loading);
+    
+    if (!loading) {
+      if (!user) {
+        console.log("No user, redirecting to login from admin page");
+        // Not logged in, redirect to login
+        router.push('/login');
+        return;
+      }
+      
+      // Check if user has admin role
+      const userRole = localStorage.getItem('userRole');
+      console.log("User role from localStorage:", userRole);
+      
+      if (userRole !== 'admin') {
+        console.log("User has non-admin role:", userRole);
+        // Not an admin, redirect to appropriate dashboard
+        if (userRole === 'driver') {
+          router.push('/driver');
+        } else {
+          router.push('/customer');
+        }
+      }
+    }
+  }, [user, loading, router]);
+
+  // If still loading or not authenticated, show loading state
+  if (loading || !user) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
   const recentChats = dummyCommunication.conversations
     .filter(conv => conv.participants.some(p => p.type === "admin"))
     .slice(0, 3); // Only show 3 most recent chats

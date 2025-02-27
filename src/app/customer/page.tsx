@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../contexts";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import Cookies from 'js-cookie';
 
 // Custom hook for device detection
 function useDeviceType() {
@@ -40,11 +43,59 @@ function useDeviceType() {
 }
 
 export default function CustomerDashboard() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const { isMobile, isTablet, isDesktop } = useDeviceType();
   const customer = dummyCustomers[0]; // Using first customer as example
   const recentChats = dummyCommunication.conversations
     .filter(conv => conv.participants.some(p => p.type === "customer"))
     .slice(0, 3); // Only show 3 most recent chats
+
+  // Check if user is authenticated and has customer role
+  useEffect(() => {
+    console.log("Customer page auth check - User:", !!user, "Loading:", loading);
+    
+    if (!loading) {
+      if (!user) {
+        console.log("No user, redirecting to login from customer page");
+        // Not logged in, redirect to login
+        router.push('/login');
+        return;
+      }
+      
+      // Check if user has customer role
+      const userRole = localStorage.getItem('userRole');
+      console.log("User role from localStorage:", userRole);
+      
+      if (userRole && userRole !== 'customer') {
+        console.log("User has non-customer role:", userRole);
+        // Not a customer, redirect to appropriate dashboard
+        if (userRole === 'admin') {
+          router.push('/admin');
+        } else if (userRole === 'driver') {
+          router.push('/driver');
+        }
+      } else if (!userRole) {
+        // If no role in localStorage, check cookie
+        const cookieRole = Cookies.get('userRole');
+        console.log("User role from cookie:", cookieRole);
+        
+        if (cookieRole && cookieRole !== 'customer') {
+          console.log("Cookie has non-customer role:", cookieRole);
+          if (cookieRole === 'admin') {
+            router.push('/admin');
+          } else if (cookieRole === 'driver') {
+            router.push('/driver');
+          }
+        }
+      }
+    }
+  }, [user, loading, router]);
+
+  // If still loading or not authenticated, show loading state
+  if (loading || !user) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   return (
     <DashboardLayout userType="customer">

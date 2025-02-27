@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../../contexts";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -47,6 +49,8 @@ type RideStatusMap = {
 };
 
 export default function DriverDashboard() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const { isMobile, isTablet, isDesktop } = useDeviceType();
   const driver = dummyDrivers[0]; // Using first driver as example
   const recentChats = dummyCommunication.conversations
@@ -55,6 +59,39 @@ export default function DriverDashboard() {
 
   // Add state for ride statuses with proper typing
   const [rideStatuses, setRideStatuses] = useState<RideStatusMap>({});
+
+  // Check if user is authenticated and has driver role
+  useEffect(() => {
+    console.log("Driver page auth check - User:", !!user, "Loading:", loading);
+    
+    if (!loading) {
+      if (!user) {
+        console.log("No user, redirecting to login from driver page");
+        // Not logged in, redirect to login
+        router.push('/login');
+        return;
+      }
+      
+      // Check if user has driver role
+      const userRole = localStorage.getItem('userRole');
+      console.log("User role from localStorage:", userRole);
+      
+      if (userRole && userRole !== 'driver') {
+        console.log("User has non-driver role:", userRole);
+        // Not a driver, redirect to appropriate dashboard
+        if (userRole === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/customer');
+        }
+      }
+    }
+  }, [user, loading, router]);
+
+  // If still loading or not authenticated, show loading state
+  if (loading || !user) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   // Function to handle status change with proper typing
   const handleStatusChange = (rideId: string, newStatus: RideStatus) => {

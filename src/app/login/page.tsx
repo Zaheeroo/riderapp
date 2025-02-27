@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts";
 import { useRouter } from "next/navigation";
 import { supabaseClient } from "../../../lib/supabase-client";
+import Cookies from 'js-cookie';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -51,13 +52,38 @@ export default function LoginPage() {
     setError('');
     
     try {
+      // Sign in the user
       const { error: signInError, data } = await signIn({ email, password });
       
       if (signInError) {
         throw signInError;
       }
       
+      // Store the user role in localStorage and cookie
+      if (typeof window !== 'undefined') {
+        console.log(`Setting user role to: ${userType}`);
+        localStorage.setItem('userRole', userType);
+        // Set cookie that will be accessible by the middleware
+        Cookies.set('userRole', userType, { path: '/', expires: 7, sameSite: 'strict' }); // Expires in 7 days
+        
+        // Double-check that the role was set correctly
+        console.log(`User role set to: ${userType}`);
+        console.log(`LocalStorage userRole: ${localStorage.getItem('userRole')}`);
+        console.log(`Cookie userRole: ${Cookies.get('userRole')}`);
+        console.log(`All cookies: ${document.cookie}`);
+      }
+      
+      // Add a longer delay to ensure cookies and localStorage are set
+      console.log('Waiting for cookies to be set...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Double-check again after delay
+      console.log(`After delay - LocalStorage userRole: ${localStorage.getItem('userRole')}`);
+      console.log(`After delay - Cookie userRole: ${Cookies.get('userRole')}`);
+      console.log(`After delay - All cookies: ${document.cookie}`);
+      
       // Redirect based on user type
+      console.log(`Redirecting to /${userType}`);
       if (userType === 'admin') {
         router.push('/admin');
       } else if (userType === 'driver') {

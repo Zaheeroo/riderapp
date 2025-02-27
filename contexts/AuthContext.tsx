@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabaseClient } from '../lib/supabase-client';
+import Cookies from 'js-cookie';
 
 interface AuthContextType {
   user: any | null;
@@ -22,6 +23,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // Sync user role between localStorage and cookies
+  const syncUserRole = () => {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const userRole = localStorage.getItem('userRole');
+      if (userRole) {
+        // Set cookie that will be accessible by the middleware
+        Cookies.set('userRole', userRole, { path: '/', expires: 7 }); // Expires in 7 days
+        console.log('Synced user role to cookie:', userRole);
+      }
+    } catch (error) {
+      console.error('Error syncing user role:', error);
+    }
+  };
+
   useEffect(() => {
     // Only run in the browser
     if (typeof window === 'undefined') return;
@@ -31,6 +48,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         setUser(session?.user || null);
+        
+        // If user is logged in, sync the role
+        if (session?.user) {
+          syncUserRole();
+        }
       } catch (error) {
         console.error('Error getting initial session:', error);
         setError(error instanceof Error ? error : new Error('Unknown error'));
@@ -46,6 +68,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
         (_event, session) => {
           setUser(session?.user || null);
+          
+          // If user is logged in, sync the role
+          if (session?.user) {
+            syncUserRole();
+          } else {
+            // If logged out, clear the role cookie
+            Cookies.remove('userRole', { path: '/' });
+          }
+          
           setLoading(false);
         }
       );
@@ -83,6 +114,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const safeSignOut = async () => {
     try {
+      // Clear role cookie on sign out
+      Cookies.remove('userRole', { path: '/' });
       return await supabaseClient.auth.signOut();
     } catch (error) {
       console.error('Error during sign out:', error);
