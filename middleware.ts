@@ -29,6 +29,22 @@ export async function middleware(req: NextRequest) {
       return res;
     }
     
+    // Add session refresh
+    if (session) {
+      const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Session refresh error:', refreshError);
+        // If refresh fails, clear the session
+        await supabase.auth.signOut();
+        const redirectUrl = new URL('/login', req.url);
+        return NextResponse.redirect(redirectUrl);
+      }
+      // Update session with refreshed data
+      if (refreshedSession) {
+        console.log('Session refreshed successfully');
+      }
+    }
+    
     console.log('Session exists:', !!session);
     
     // Define protected paths and public paths

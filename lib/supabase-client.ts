@@ -28,31 +28,63 @@ const dummyClient = {
 // Create a client instance with proper error handling
 let clientInstance;
 
-if (isBrowser) {
-  try {
-    // Get environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (supabaseUrl && supabaseAnonKey) {
-      // Create client directly instead of using createClientComponentClient
-      clientInstance = createClient(supabaseUrl, supabaseAnonKey, {
+try {
+  if (isBrowser && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    clientInstance = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true
+          detectSessionInUrl: true,
+          flowType: 'pkce',
+          storage: {
+            getItem: (key) => {
+              try {
+                if (typeof window !== 'undefined') {
+                  return Promise.resolve(localStorage.getItem(key));
+                }
+                return Promise.resolve(null);
+              } catch {
+                return Promise.resolve(null);
+              }
+            },
+            setItem: (key, value) => {
+              try {
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem(key, value);
+                }
+                return Promise.resolve();
+              } catch {
+                return Promise.resolve();
+              }
+            },
+            removeItem: (key) => {
+              try {
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem(key);
+                }
+                return Promise.resolve();
+              } catch {
+                return Promise.resolve();
+              }
+            },
+          },
+        },
+        global: {
+          headers: {
+            'X-Client-Info': 'supabase-js-web'
+          }
         }
-      });
-      console.log('Supabase client initialized successfully');
-    } else {
-      console.warn('Supabase environment variables are missing. Using dummy client.');
-      clientInstance = dummyClient;
-    }
-  } catch (error) {
-    console.error('Error initializing Supabase client:', error);
+      }
+    );
+  } else {
+    console.warn('Using dummy client - environment variables missing or not in browser');
     clientInstance = dummyClient;
   }
-} else {
+} catch (error) {
+  console.error('Error initializing Supabase client:', error);
   clientInstance = dummyClient;
 }
 

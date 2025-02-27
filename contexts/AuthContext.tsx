@@ -39,8 +39,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       Cookies.set('userRole', userRole, { 
         path: '/', 
         expires: 7,
-        secure: window.location.protocol === 'https:',
-        sameSite: 'lax'
+        secure: true,
+        sameSite: 'strict',
+        domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
       });
       console.log('Role synced successfully');
     } catch (error) {
