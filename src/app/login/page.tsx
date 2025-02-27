@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Chrome } from "lucide-react";
+import { Chrome, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts";
 import { useRouter } from "next/navigation";
+import { supabaseClient } from "../../../lib/supabase-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -17,19 +18,44 @@ export default function LoginPage() {
   const [userType, setUserType] = useState('customer');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [supabaseAvailable, setSupabaseAvailable] = useState(true);
   
   const { signIn } = useAuth();
   const router = useRouter();
 
+  // Check if Supabase is available
+  useEffect(() => {
+    const checkSupabase = async () => {
+      try {
+        // Try to get session as a simple test
+        await supabaseClient.auth.getSession();
+        setSupabaseAvailable(true);
+      } catch (error) {
+        console.error('Supabase connection error:', error);
+        setSupabaseAvailable(false);
+      }
+    };
+    
+    checkSupabase();
+  }, []);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!supabaseAvailable) {
+      setError('Authentication service is currently unavailable. Please try again later.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     
     try {
-      const { error } = await signIn({ email, password });
+      const { error: signInError, data } = await signIn({ email, password });
       
-      if (error) throw error;
+      if (signInError) {
+        throw signInError;
+      }
       
       // Redirect based on user type
       if (userType === 'admin') {
@@ -40,7 +66,14 @@ export default function LoginPage() {
         router.push('/customer');
       }
     } catch (error: any) {
-      setError(error.message || 'Failed to sign in');
+      // Handle specific error types
+      if (error.message?.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please try again.');
+      } else if (error.message?.includes('network')) {
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError(error.message || 'Failed to sign in. Please try again later.');
+      }
       console.error('Sign in error:', error);
     } finally {
       setLoading(false);
@@ -67,8 +100,16 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSignIn}>
           <CardContent className="space-y-4">
+            {!supabaseAvailable && (
+              <div className="p-3 text-sm bg-yellow-100 border border-yellow-200 text-yellow-800 rounded-md flex items-center">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Authentication service is currently unavailable. Some features may not work properly.
+              </div>
+            )}
+            
             {error && (
-              <div className="p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md">
+              <div className="p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md flex items-center">
+                <AlertCircle className="h-4 w-4 mr-2" />
                 {error}
               </div>
             )}

@@ -20,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     // Only run in the browser
@@ -32,36 +33,76 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(session?.user || null);
       } catch (error) {
         console.error('Error getting initial session:', error);
+        setError(error instanceof Error ? error : new Error('Unknown error'));
       } finally {
         setLoading(false);
       }
     };
 
-    getInitialSession();
+    try {
+      getInitialSession();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
-        setLoading(false);
-      }
-    );
+      // Listen for auth changes
+      const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
+        (_event, session) => {
+          setUser(session?.user || null);
+          setLoading(false);
+        }
+      );
 
-    return () => {
-      subscription?.unsubscribe();
-    };
+      return () => {
+        subscription?.unsubscribe();
+      };
+    } catch (error) {
+      console.error('Error setting up auth state change listener:', error);
+      setLoading(false);
+    }
   }, []);
 
   // Create empty functions for SSR
   const noOpPromise = async () => ({ error: null, data: null });
 
+  // Safe auth functions with error handling
+  const safeSignUp = async (data: any) => {
+    try {
+      return await supabaseClient.auth.signUp(data);
+    } catch (error) {
+      console.error('Error during sign up:', error);
+      return { error, data: null };
+    }
+  };
+
+  const safeSignIn = async (data: any) => {
+    try {
+      return await supabaseClient.auth.signInWithPassword(data);
+    } catch (error) {
+      console.error('Error during sign in:', error);
+      return { error, data: null };
+    }
+  };
+
+  const safeSignOut = async () => {
+    try {
+      return await supabaseClient.auth.signOut();
+    } catch (error) {
+      console.error('Error during sign out:', error);
+      return { error };
+    }
+  };
+
   const value = {
-    signUp: typeof window === 'undefined' ? noOpPromise : (data: any) => supabaseClient.auth.signUp(data),
-    signIn: typeof window === 'undefined' ? noOpPromise : (data: any) => supabaseClient.auth.signInWithPassword(data),
-    signOut: typeof window === 'undefined' ? noOpPromise : () => supabaseClient.auth.signOut(),
+    signUp: typeof window === 'undefined' ? noOpPromise : safeSignUp,
+    signIn: typeof window === 'undefined' ? noOpPromise : safeSignIn,
+    signOut: typeof window === 'undefined' ? noOpPromise : safeSignOut,
     user,
     loading
   };
+
+  // If there was an error initializing the auth context, render an error message
+  if (error && !loading && typeof window !== 'undefined') {
+    console.error('Auth context error:', error);
+    // Continue rendering the app anyway, just with no user
+  }
 
   return (
     <AuthContext.Provider value={value}>
