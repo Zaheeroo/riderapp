@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";

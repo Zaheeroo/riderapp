@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseClient } from '../lib/supabase-client';
 
 interface AuthContextType {
   user: any | null;
@@ -25,7 +25,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Get current session
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabaseClient.auth.getSession();
         setUser(session?.user || null);
       } catch (error) {
         console.error('Error getting initial session:', error);
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     getInitialSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
         setLoading(false);
@@ -50,9 +50,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const value = {
-    signUp: (data: any) => supabase.auth.signUp(data),
-    signIn: (data: any) => supabase.auth.signInWithPassword(data),
-    signOut: () => supabase.auth.signOut(),
+    signUp: (data: any) => supabaseClient.auth.signUp(data),
+    signIn: (data: any) => supabaseClient.auth.signInWithPassword(data),
+    signOut: () => supabaseClient.auth.signOut(),
     user,
     loading
   };

@@ -8,7 +8,7 @@ import { Chrome } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useAuth } from "../../../contexts/AuthContext";
+import { useAuth } from "../../../contexts";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
