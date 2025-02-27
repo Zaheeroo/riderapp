@@ -30,6 +30,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type Ride = {
   id: string;
@@ -71,6 +79,155 @@ export default function AdminDashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const { isMobile } = useDeviceType();
+  const [showAddDriverModal, setShowAddDriverModal] = useState(false);
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Driver form state
+  const [driverName, setDriverName] = useState('');
+  const [driverEmail, setDriverEmail] = useState('');
+  const [driverPhone, setDriverPhone] = useState('');
+  const [driverPassword, setDriverPassword] = useState('');
+  const [vehicleModel, setVehicleModel] = useState('');
+  const [vehicleYear, setVehicleYear] = useState('');
+  const [vehiclePlate, setVehiclePlate] = useState('');
+  const [vehicleColor, setVehicleColor] = useState('');
+  
+  // Customer form state
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerPassword, setCustomerPassword] = useState('');
+  const [customerLocation, setCustomerLocation] = useState('');
+  
+  // Reset form states
+  const resetDriverForm = () => {
+    setDriverName('');
+    setDriverEmail('');
+    setDriverPhone('');
+    setDriverPassword('');
+    setVehicleModel('');
+    setVehicleYear('');
+    setVehiclePlate('');
+    setVehicleColor('');
+    setError('');
+  };
+  
+  const resetCustomerForm = () => {
+    setCustomerName('');
+    setCustomerEmail('');
+    setCustomerPhone('');
+    setCustomerPassword('');
+    setCustomerLocation('');
+    setError('');
+  };
+  
+  // Handle modal close
+  const closeDriverModal = () => {
+    resetDriverForm();
+    setShowAddDriverModal(false);
+  };
+  
+  const closeCustomerModal = () => {
+    resetCustomerForm();
+    setShowAddCustomerModal(false);
+  };
+  
+  // Handle form submissions
+  const handleAddDriver = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+    
+    try {
+      // Validate form
+      if (!driverName || !driverEmail || !driverPhone || !driverPassword || 
+          !vehicleModel || !vehicleYear || !vehiclePlate || !vehicleColor) {
+        throw new Error('Please fill in all fields');
+      }
+      
+      // Create the driver in Supabase
+      const response = await fetch('/api/admin/create-driver', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: driverName,
+          email: driverEmail,
+          phone: driverPhone,
+          password: driverPassword,
+          vehicle: {
+            model: vehicleModel,
+            year: vehicleYear,
+            plate: vehiclePlate,
+            color: vehicleColor
+          }
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create driver');
+      }
+      
+      // Success - close modal and reset form
+      alert('Driver created successfully!');
+      closeDriverModal();
+      
+    } catch (error: any) {
+      console.error('Error creating driver:', error);
+      setError(error.message || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleAddCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+    
+    try {
+      // Validate form
+      if (!customerName || !customerEmail || !customerPhone || !customerPassword) {
+        throw new Error('Please fill in all required fields');
+      }
+      
+      // Create the customer in Supabase
+      const response = await fetch('/api/admin/create-customer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+          password: customerPassword,
+          location: customerLocation
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create customer');
+      }
+      
+      // Success - close modal and reset form
+      alert('Customer created successfully!');
+      closeCustomerModal();
+      
+    } catch (error: any) {
+      console.error('Error creating customer:', error);
+      setError(error.message || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   
   // Check if user is authenticated and has admin role
   useEffect(() => {
@@ -646,11 +803,11 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground">Here's what's happening with your platform today.</p>
           </div>
           <div className="flex gap-2">
-            <Button>
+            <Button onClick={() => setShowAddDriverModal(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Driver
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => setShowAddCustomerModal(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Customer
             </Button>
@@ -804,6 +961,190 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+      
+      {/* Add Driver Modal */}
+      <Dialog open={showAddDriverModal} onOpenChange={setShowAddDriverModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Driver</DialogTitle>
+            <DialogDescription>Create a new driver account</DialogDescription>
+          </DialogHeader>
+          {error && (
+            <div className="mb-4 p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md">
+              {error}
+            </div>
+          )}
+          <form className="space-y-4" id="add-driver-form" onSubmit={handleAddDriver}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input 
+                value={driverName}
+                onChange={(e) => setDriverName(e.target.value)}
+                placeholder="Full Name" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <Input 
+                value={driverEmail}
+                onChange={(e) => setDriverEmail(e.target.value)}
+                type="email" 
+                placeholder="email@example.com" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone</label>
+              <Input 
+                value={driverPhone}
+                onChange={(e) => setDriverPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Password</label>
+              <Input 
+                value={driverPassword}
+                onChange={(e) => setDriverPassword(e.target.value)}
+                type="password" 
+                placeholder="Create a strong password" 
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Vehicle Model</label>
+                <Input 
+                  value={vehicleModel}
+                  onChange={(e) => setVehicleModel(e.target.value)}
+                  placeholder="Toyota Camry" 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Vehicle Year</label>
+                <Input 
+                  value={vehicleYear}
+                  onChange={(e) => setVehicleYear(e.target.value)}
+                  placeholder="2023" 
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">License Plate</label>
+                <Input 
+                  value={vehiclePlate}
+                  onChange={(e) => setVehiclePlate(e.target.value)}
+                  placeholder="ABC-123" 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Vehicle Color</label>
+                <Input 
+                  value={vehicleColor}
+                  onChange={(e) => setVehicleColor(e.target.value)}
+                  placeholder="Silver" 
+                  required
+                />
+              </div>
+            </div>
+          </form>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDriverModal} type="button">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddDriver} 
+              disabled={isSubmitting}
+              type="submit"
+              form="add-driver-form"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Driver'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Customer Modal */}
+      <Dialog open={showAddCustomerModal} onOpenChange={setShowAddCustomerModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Customer</DialogTitle>
+            <DialogDescription>Create a new customer account</DialogDescription>
+          </DialogHeader>
+          {error && (
+            <div className="mb-4 p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md">
+              {error}
+            </div>
+          )}
+          <form className="space-y-4" id="add-customer-form" onSubmit={handleAddCustomer}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input 
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Full Name" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <Input 
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                type="email" 
+                placeholder="email@example.com" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone</label>
+              <Input 
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Password</label>
+              <Input 
+                value={customerPassword}
+                onChange={(e) => setCustomerPassword(e.target.value)}
+                type="password" 
+                placeholder="Create a strong password" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Location</label>
+              <Input 
+                value={customerLocation}
+                onChange={(e) => setCustomerLocation(e.target.value)}
+                placeholder="City, Country" 
+              />
+            </div>
+          </form>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeCustomerModal} type="button">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddCustomer} 
+              disabled={isSubmitting}
+              type="submit"
+              form="add-customer-form"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Customer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 } 
