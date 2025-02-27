@@ -19,7 +19,12 @@ export default function DetectRolePage() {
       // If role exists in localStorage, set it in cookies
       if (userRole) {
         console.log(`Setting role cookie to: ${userRole}`);
-        Cookies.set('userRole', userRole, { path: '/', expires: 7, sameSite: 'strict' });
+        Cookies.set('userRole', userRole, { 
+          path: '/', 
+          expires: 7, 
+          secure: window.location.protocol === 'https:',
+          sameSite: 'lax'
+        });
         
         // Redirect based on role
         console.log(`Redirecting to /${userRole}`);
@@ -28,7 +33,12 @@ export default function DetectRolePage() {
         // If no role in localStorage, default to customer
         console.log('No role found, defaulting to customer');
         localStorage.setItem('userRole', 'customer');
-        Cookies.set('userRole', 'customer', { path: '/', expires: 7, sameSite: 'strict' });
+        Cookies.set('userRole', 'customer', { 
+          path: '/', 
+          expires: 7, 
+          secure: window.location.protocol === 'https:',
+          sameSite: 'lax'
+        });
         router.push('/customer');
       }
     };

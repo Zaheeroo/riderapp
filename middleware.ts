@@ -9,7 +9,8 @@ export async function middleware(req: NextRequest) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
-    pathname.includes('.')
+    pathname.includes('.') ||
+    pathname === '/favicon.ico'
   ) {
     return NextResponse.next();
   }
@@ -59,12 +60,14 @@ export async function middleware(req: NextRequest) {
         console.log('Authenticated user trying to access login/signup, redirecting to dashboard');
         
         // Redirect based on user role
-        let redirectPath = '/customer'; // Default
+        let redirectPath = '/detect-role'; // Default to role detection if no role cookie
         
         if (userRole === 'admin') {
           redirectPath = '/admin';
         } else if (userRole === 'driver') {
           redirectPath = '/driver';
+        } else if (userRole === 'customer') {
+          redirectPath = '/customer';
         }
         
         console.log(`Redirecting to ${redirectPath} based on role: ${userRole}`);
@@ -99,7 +102,7 @@ export async function middleware(req: NextRequest) {
       } else {
         console.log('User is logged in but no role is set in cookies');
         // If no role is set but user is authenticated, try to get role from localStorage via a client-side redirect
-        if (isProtectedPath) {
+        if (isProtectedPath || pathname === '/') {
           console.log('Redirecting to role detection page');
           const url = new URL('/detect-role', req.url);
           return NextResponse.redirect(url);

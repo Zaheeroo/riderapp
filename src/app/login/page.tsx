@@ -64,7 +64,13 @@ export default function LoginPage() {
         console.log(`Setting user role to: ${userType}`);
         localStorage.setItem('userRole', userType);
         // Set cookie that will be accessible by the middleware
-        Cookies.set('userRole', userType, { path: '/', expires: 7, sameSite: 'strict' }); // Expires in 7 days
+        // For production environments, don't set SameSite to strict as it can cause issues with redirects
+        Cookies.set('userRole', userType, { 
+          path: '/', 
+          expires: 7, 
+          secure: window.location.protocol === 'https:',
+          sameSite: 'lax' // Changed from 'strict' to 'lax' for better compatibility
+        });
         
         // Double-check that the role was set correctly
         console.log(`User role set to: ${userType}`);

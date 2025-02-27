@@ -31,7 +31,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const userRole = localStorage.getItem('userRole');
       if (userRole) {
         // Set cookie that will be accessible by the middleware
-        Cookies.set('userRole', userRole, { path: '/', expires: 7 }); // Expires in 7 days
+        Cookies.set('userRole', userRole, { 
+          path: '/', 
+          expires: 7,
+          secure: window.location.protocol === 'https:',
+          sameSite: 'lax' // Changed from default to 'lax' for better compatibility
+        });
         console.log('Synced user role to cookie:', userRole);
       }
     } catch (error) {
@@ -116,6 +121,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       // Clear role cookie on sign out
       Cookies.remove('userRole', { path: '/' });
+      localStorage.removeItem('userRole');
       return await supabaseClient.auth.signOut();
     } catch (error) {
       console.error('Error during sign out:', error);
