@@ -17,6 +17,8 @@ const nextConfig = {
     // Warning: This allows production builds to successfully complete even if your project has ESLint errors
     ignoreDuringBuilds: true,
   },
+  // Disable static generation for routes that depend on Supabase
+  serverExternalPackages: ['@supabase/supabase-js'],
 }
 
 module.exports = nextConfig 
