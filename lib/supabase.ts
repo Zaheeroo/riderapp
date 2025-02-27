@@ -25,7 +25,19 @@ const dummyClient = {
   }),
 };
 
-// Only create the client if we have the required values and we're in a browser
-export const supabase = (isBrowser && supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : dummyClient; 
+// Only create the client if we have the required values
+let supabaseInstance;
+
+try {
+  if (supabaseUrl && supabaseAnonKey) {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  } else {
+    console.warn('Supabase environment variables are missing. Using dummy client.');
+    supabaseInstance = dummyClient;
+  }
+} catch (error) {
+  console.error('Error initializing Supabase client:', error);
+  supabaseInstance = dummyClient;
+}
+
+export const supabase = supabaseInstance; 

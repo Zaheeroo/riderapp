@@ -25,10 +25,30 @@ const dummyClient = {
 };
 
 // Client component Supabase client - this will use cookies and browser environment
-// Only create if we're in a browser environment
-export const supabaseClient = isBrowser 
-  ? createClientComponentClient()
-  : dummyClient;
+// Only create if we're in a browser environment and required env vars are available
+let clientInstance;
+
+if (isBrowser) {
+  try {
+    // Check if environment variables are available
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (supabaseUrl && supabaseAnonKey) {
+      clientInstance = createClientComponentClient();
+    } else {
+      console.warn('Supabase environment variables are missing. Using dummy client.');
+      clientInstance = dummyClient;
+    }
+  } catch (error) {
+    console.error('Error initializing Supabase client:', error);
+    clientInstance = dummyClient;
+  }
+} else {
+  clientInstance = dummyClient;
+}
+
+export const supabaseClient = clientInstance;
 
 // For direct API access (not using cookies)
 export const supabaseDirect = supabaseDirectClient || dummyClient; 
