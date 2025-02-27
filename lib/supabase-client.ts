@@ -1,12 +1,13 @@
 'use client';
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+// Direct import of createClient to have more control over initialization
+import { createClient } from '@supabase/supabase-js';
 import { supabase as supabaseDirectClient } from './supabase';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
 
-// Create a dummy client for non-browser environments
+// Create a dummy client for non-browser environments or when env vars are missing
 const dummyClient = {
   auth: {
     getSession: () => Promise.resolve({ data: { session: null }, error: null }),
@@ -17,25 +18,32 @@ const dummyClient = {
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
   },
   from: () => ({
-    select: () => ({ data: null, error: null }),
-    insert: () => ({ data: null, error: null }),
-    update: () => ({ data: null, error: null }),
-    delete: () => ({ data: null, error: null }),
+    select: () => Promise.resolve({ data: null, error: null }),
+    insert: () => Promise.resolve({ data: null, error: null }),
+    update: () => Promise.resolve({ data: null, error: null }),
+    delete: () => Promise.resolve({ data: null, error: null }),
   }),
 };
 
-// Client component Supabase client - this will use cookies and browser environment
-// Only create if we're in a browser environment and required env vars are available
+// Create a client instance with proper error handling
 let clientInstance;
 
 if (isBrowser) {
   try {
-    // Check if environment variables are available
+    // Get environment variables
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (supabaseUrl && supabaseAnonKey) {
-      clientInstance = createClientComponentClient();
+      // Create client directly instead of using createClientComponentClient
+      clientInstance = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      });
+      console.log('Supabase client initialized successfully');
     } else {
       console.warn('Supabase environment variables are missing. Using dummy client.');
       clientInstance = dummyClient;

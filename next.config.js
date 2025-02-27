@@ -19,8 +19,8 @@ const nextConfig = {
   },
   // Use webpack to mock Supabase during build
   webpack: (config, { isServer, dev }) => {
-    // Only apply this in production build
-    if (!dev && isServer) {
+    // Only apply this in production build, but for both client and server
+    if (!dev) {
       // Mock @supabase/supabase-js
       config.resolve.alias['@supabase/supabase-js'] = require.resolve('./mocks/supabase-js.js');
       // Mock @supabase/auth-helpers-nextjs
@@ -28,6 +28,11 @@ const nextConfig = {
     }
     return config;
   },
+  // Add environment variables with fallbacks for build time
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-url.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key',
+  }
 }
 
 module.exports = nextConfig 
