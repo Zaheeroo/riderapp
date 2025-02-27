@@ -48,12 +48,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const safeSignIn = async (data: any) => {
+    try {
+      console.log('Attempting sign in...');
+      const result = await supabaseClient.auth.signInWithPassword(data);
+      
+      if (result.error) {
+        console.error('Sign in error:', result.error);
+        throw result.error;
+      }
+
+      // If we have user data in the result, sync it
+      if (result.data?.user) {
+        console.log('Sign in successful, syncing user role...');
+        syncUserRole(result.data.user);
+      }
+      
+      // Return the full result including session
+      return result;
+    } catch (error) {
+      console.error('Error during sign in:', error);
+      return { error, data: null };
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     const initialize = async () => {
       try {
         console.log('Initializing auth context...');
+        
         // Get initial session
         const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
         
@@ -62,31 +87,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
           throw sessionError;
         }
 
-        console.log('Initial session:', session ? 'exists' : 'none');
-        if (session?.user) {
-          console.log('Initial user:', session.user);
-        }
-
-        if (mounted) {
-          setUser(session?.user || null);
-          if (session?.user) {
-            syncUserRole(session.user);
-          }
-          setLoading(false);
+        if (session?.user && mounted) {
+          console.log('Found user in initial session');
+          setUser(session.user);
+          syncUserRole(session.user);
+        } else {
+          console.log('No user in initial session');
+          setUser(null);
         }
 
         // Listen for auth changes
         const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
           async (event, session) => {
             console.log('Auth state change:', event);
-            console.log('New session:', session ? 'exists' : 'none');
             
-            if (mounted) {
-              setUser(session?.user || null);
-              if (session?.user) {
-                syncUserRole(session.user);
+            if (!mounted) return;
+
+            if (session?.user) {
+              console.log('User found in auth change:', session.user);
+              setUser(session.user);
+              syncUserRole(session.user);
+            } else {
+              console.log('No user in auth change');
+              setUser(null);
+              // Clear role data
+              if (typeof window !== 'undefined') {
+                Cookies.remove('userRole', { path: '/' });
+                localStorage.removeItem('userRole');
               }
-              setLoading(false);
             }
           }
         );
@@ -100,6 +128,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Error initializing auth:', error);
         if (mounted) {
           setError(error instanceof Error ? error : new Error('Unknown error'));
+        }
+      } finally {
+        if (mounted) {
           setLoading(false);
         }
       }
@@ -117,30 +148,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return await supabaseClient.auth.signUp(data);
     } catch (error) {
       console.error('Error during sign up:', error);
-      return { error, data: null };
-    }
-  };
-
-  const safeSignIn = async (data: any) => {
-    try {
-      console.log('Attempting sign in...');
-      const result = await supabaseClient.auth.signInWithPassword(data);
-      
-      if (result.error) {
-        console.error('Sign in error:', result.error);
-        throw result.error;
-      }
-
-      console.log('Sign in successful:', result.data);
-      
-      if (result.data?.user) {
-        console.log('Syncing user role after sign in...');
-        syncUserRole(result.data.user);
-      }
-      
-      return result;
-    } catch (error) {
-      console.error('Error during sign in:', error);
       return { error, data: null };
     }
   };
