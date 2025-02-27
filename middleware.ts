@@ -16,6 +16,8 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
+    console.log('Middleware processing path:', pathname);
+    
     // Create a Supabase client configured to use cookies
     const supabase = createMiddlewareClient({ req, res });
     
@@ -27,14 +29,23 @@ export async function middleware(req: NextRequest) {
       return res;
     }
     
+    console.log('Session exists:', !!session);
+    
     // Define protected paths and public paths
     const protectedPaths = ['/admin', '/driver', '/customer'];
     const publicPaths = ['/', '/login', '/signup'];
     const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
     const isPublicPath = publicPaths.includes(pathname);
     
+    console.log('Path type:', {
+      isProtectedPath,
+      isPublicPath,
+      pathname
+    });
+    
     // If no session and trying to access protected route
     if (!session && isProtectedPath) {
+      console.log('No session, redirecting to login');
       const redirectUrl = new URL('/login', req.url);
       return NextResponse.redirect(redirectUrl);
     }
@@ -44,8 +55,11 @@ export async function middleware(req: NextRequest) {
       const user = session.user;
       const userRole = user?.user_metadata?.user_type || 'customer';
       
+      console.log('User role from metadata:', userRole);
+      
       // If accessing login/signup while authenticated
       if (isPublicPath) {
+        console.log('Authenticated user accessing public path, redirecting to dashboard');
         // Redirect to appropriate dashboard
         const redirectUrl = new URL(`/${userRole}`, req.url);
         return NextResponse.redirect(redirectUrl);
@@ -57,6 +71,13 @@ export async function middleware(req: NextRequest) {
         const isDriverPath = pathname.startsWith('/driver');
         const isCustomerPath = pathname.startsWith('/customer');
         
+        console.log('Checking role access:', {
+          isAdminPath,
+          isDriverPath,
+          isCustomerPath,
+          userRole
+        });
+        
         const hasAccess = (
           (isAdminPath && userRole === 'admin') ||
           (isDriverPath && userRole === 'driver') ||
@@ -64,6 +85,7 @@ export async function middleware(req: NextRequest) {
         );
         
         if (!hasAccess) {
+          console.log('Access denied, redirecting to appropriate dashboard');
           // Redirect to appropriate dashboard
           const redirectUrl = new URL(`/${userRole}`, req.url);
           return NextResponse.redirect(redirectUrl);

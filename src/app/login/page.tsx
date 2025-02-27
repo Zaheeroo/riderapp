@@ -28,10 +28,21 @@ export default function LoginPage() {
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         console.log('Initial session check:', session ? 'Session exists' : 'No session');
+        
         if (session?.user) {
           console.log('Session user:', session.user);
           const userRole = session.user.user_metadata?.user_type || 'customer';
           console.log('User role from session:', userRole);
+          
+          // Store role in localStorage and cookies before redirect
+          localStorage.setItem('userRole', userRole);
+          Cookies.set('userRole', userRole, { 
+            path: '/', 
+            expires: 7,
+            secure: window.location.protocol === 'https:',
+            sameSite: 'lax'
+          });
+          
           router.push(`/${userRole}`);
         }
       } catch (error) {
@@ -55,6 +66,7 @@ export default function LoginPage() {
     
     try {
       console.log('Attempting sign in...');
+      
       // Sign in the user
       const { error: signInError, data: signInData } = await signIn({ email, password });
       
@@ -63,46 +75,30 @@ export default function LoginPage() {
         throw signInError;
       }
 
-      console.log('Sign in response:', signInData);
+      console.log('Sign in successful:', signInData);
 
-      // If we have a session from the sign-in response, use that
-      if (signInData?.session?.user) {
-        const user = signInData.session.user;
-        console.log('User from session:', user);
-        const userRole = user.user_metadata?.user_type || 'customer';
-        console.log('User role from session:', userRole);
-        router.push(`/${userRole}`);
-        return;
+      // Get the user from the session
+      const user = signInData?.session?.user;
+      if (!user) {
+        console.error('No user in session after sign in');
+        throw new Error('Unable to establish session after successful sign in');
       }
 
-      // If no session in sign-in response, try to get it directly
-      console.log('No session in sign-in response, checking current session...');
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      
-      if (session?.user) {
-        console.log('Found user in current session:', session.user);
-        const userRole = session.user.user_metadata?.user_type || 'customer';
-        console.log('User role from current session:', userRole);
-        router.push(`/${userRole}`);
-        return;
-      }
+      console.log('User from session:', user);
+      const userRole = user.user_metadata?.user_type || 'customer';
+      console.log('User role from metadata:', userRole);
 
-      // If still no session, try one more time after a short delay
-      console.log('No session found, waiting briefly and trying one more time...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const { data: { session: retrySession } } = await supabaseClient.auth.getSession();
-      
-      if (retrySession?.user) {
-        console.log('Found user in retry session:', retrySession.user);
-        const userRole = retrySession.user.user_metadata?.user_type || 'customer';
-        console.log('User role from retry session:', userRole);
-        router.push(`/${userRole}`);
-        return;
-      }
+      // Store role in localStorage and cookies
+      localStorage.setItem('userRole', userRole);
+      Cookies.set('userRole', userRole, { 
+        path: '/', 
+        expires: 7,
+        secure: window.location.protocol === 'https:',
+        sameSite: 'lax'
+      });
 
-      // If we still don't have a session, something is wrong
-      throw new Error('Unable to establish session after successful sign in');
+      console.log('Role stored. Redirecting to dashboard...');
+      router.push(`/${userRole}`);
     } catch (error: any) {
       console.error('Sign in process error:', error);
       if (error.message?.includes('Invalid login credentials')) {
