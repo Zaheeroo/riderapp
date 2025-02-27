@@ -4,44 +4,54 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Chrome } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [userType, setUserType] = useState('customer');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
   const router = useRouter();
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+    
     try {
-      const { error } = await signIn({ email, password });
+      const { error } = await signUp({ 
+        email, 
+        password,
+        options: {
+          data: {
+            user_type: userType
+          }
+        }
+      });
       
       if (error) throw error;
       
-      // Redirect based on user type
-      if (userType === 'admin') {
-        router.push('/admin');
-      } else if (userType === 'driver') {
-        router.push('/driver');
-      } else {
-        router.push('/customer');
-      }
+      // Show success message and redirect to login
+      alert('Registration successful! Please check your email to confirm your account.');
+      router.push('/login');
     } catch (error: any) {
-      setError(error.message || 'Failed to sign in');
-      console.error('Sign in error:', error);
+      setError(error.message || 'Failed to sign up');
+      console.error('Sign up error:', error);
     } finally {
       setLoading(false);
     }
@@ -60,12 +70,12 @@ export default function LoginPage() {
               className="h-16 w-auto"
             />
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
           <CardDescription>
-            Your trusted transportation partner in Costa Rica
+            Join Jaco Rides - Your trusted transportation partner in Costa Rica
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSignIn}>
+        <form onSubmit={handleSignUp}>
           <CardContent className="space-y-4">
             {error && (
               <div className="p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md">
@@ -83,7 +93,6 @@ export default function LoginPage() {
                 <SelectContent>
                   <SelectItem value="customer">Customer (Tourist)</SelectItem>
                   <SelectItem value="driver">Driver</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -101,9 +110,19 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Input 
                 type="password" 
-                placeholder="••••••••" 
+                placeholder="Create password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Input 
+                type="password" 
+                placeholder="Confirm password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>
@@ -113,36 +132,17 @@ export default function LoginPage() {
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <Button variant="outline" className="w-full" disabled>
-              <Chrome className="mr-2 h-4 w-4" />
-              Google (Coming Soon)
+              {loading ? 'Creating account...' : 'Create account'}
             </Button>
           </CardContent>
         </form>
-        <CardFooter className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
+        <CardFooter className="flex justify-center text-sm text-muted-foreground">
           <div>
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-primary hover:underline">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/login" className="text-primary hover:underline">
+              Sign in
             </Link>
           </div>
-          <Link href="/forgot-password" className="text-primary hover:underline">
-            Forgot your password?
-          </Link>
         </CardFooter>
       </Card>
     </div>
