@@ -22,6 +22,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Only run in the browser
+    if (typeof window === 'undefined') return;
+    
     // Get current session
     const getInitialSession = async () => {
       try {
@@ -49,10 +52,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
+  // Create empty functions for SSR
+  const noOpPromise = async () => ({ error: null, data: null });
+
   const value = {
-    signUp: (data: any) => supabaseClient.auth.signUp(data),
-    signIn: (data: any) => supabaseClient.auth.signInWithPassword(data),
-    signOut: () => supabaseClient.auth.signOut(),
+    signUp: typeof window === 'undefined' ? noOpPromise : (data: any) => supabaseClient.auth.signUp(data),
+    signIn: typeof window === 'undefined' ? noOpPromise : (data: any) => supabaseClient.auth.signInWithPassword(data),
+    signOut: typeof window === 'undefined' ? noOpPromise : () => supabaseClient.auth.signOut(),
     user,
     loading
   };
