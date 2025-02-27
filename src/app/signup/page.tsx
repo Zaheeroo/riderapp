@@ -34,12 +34,13 @@ export default function SignupPage() {
     }
     
     try {
+      // Sign up the user with metadata
       const { error } = await signUp({ 
         email, 
         password,
         options: {
           data: {
-            user_type: userType
+            user_type: userType // Store user type in metadata
           }
         }
       });

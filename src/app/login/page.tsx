@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Chrome, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,7 +15,6 @@ import Cookies from 'js-cookie';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState('customer');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [supabaseAvailable, setSupabaseAvailable] = useState(true);
@@ -53,48 +51,55 @@ export default function LoginPage() {
     
     try {
       // Sign in the user
-      const { error: signInError, data } = await signIn({ email, password });
+      const { error: signInError, data: signInData } = await signIn({ email, password });
       
       if (signInError) {
         throw signInError;
       }
+
+      // Get user metadata to determine role
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      
+      // Debug logging for oliverburgos@gmail.com
+      if (email === 'oliverburgos@gmail.com') {
+        console.log('Found oliverburgos@gmail.com user:');
+        console.log('Full user object:', JSON.stringify(user, null, 2));
+        console.log('Email:', user?.email);
+        console.log('User ID:', user?.id);
+        console.log('Raw metadata:', JSON.stringify(user?.user_metadata, null, 2));
+      }
+      
+      const userType = user?.user_metadata?.user_type || 'customer';
+      console.log('Determined user type:', userType);
       
       // Store the user role in localStorage and cookie
       if (typeof window !== 'undefined') {
         console.log(`Setting user role to: ${userType}`);
         localStorage.setItem('userRole', userType);
         // Set cookie that will be accessible by the middleware
-        // For production environments, don't set SameSite to strict as it can cause issues with redirects
         Cookies.set('userRole', userType, { 
           path: '/', 
           expires: 7, 
           secure: window.location.protocol === 'https:',
-          sameSite: 'lax' // Changed from 'strict' to 'lax' for better compatibility
+          sameSite: 'lax'
         });
-        
-        // Double-check that the role was set correctly
-        console.log(`User role set to: ${userType}`);
-        console.log(`LocalStorage userRole: ${localStorage.getItem('userRole')}`);
-        console.log(`Cookie userRole: ${Cookies.get('userRole')}`);
-        console.log(`All cookies: ${document.cookie}`);
+
+        // Debug: Check stored values
+        console.log('Stored values after setting:');
+        console.log('LocalStorage role:', localStorage.getItem('userRole'));
+        console.log('Cookie role:', Cookies.get('userRole'));
       }
       
-      // Add a longer delay to ensure cookies and localStorage are set
-      console.log('Waiting for cookies to be set...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Double-check again after delay
-      console.log(`After delay - LocalStorage userRole: ${localStorage.getItem('userRole')}`);
-      console.log(`After delay - Cookie userRole: ${Cookies.get('userRole')}`);
-      console.log(`After delay - All cookies: ${document.cookie}`);
-      
-      // Redirect based on user type
+      // Redirect based on user type from metadata
       console.log(`Redirecting to /${userType}`);
       if (userType === 'admin') {
+        console.log('User is admin, redirecting to /admin');
         router.push('/admin');
       } else if (userType === 'driver') {
+        console.log('User is driver, redirecting to /driver');
         router.push('/driver');
       } else {
+        console.log('User is customer, redirecting to /customer');
         router.push('/customer');
       }
     } catch (error: any) {
@@ -145,21 +150,6 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            <div className="space-y-2">
-              <Select 
-                defaultValue="customer" 
-                onValueChange={(value) => setUserType(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select user type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="customer">Customer (Tourist)</SelectItem>
-                  <SelectItem value="driver">Driver</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             
             <div className="space-y-2">
               <Input 

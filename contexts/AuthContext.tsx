@@ -23,22 +23,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Sync user role between localStorage and cookies
-  const syncUserRole = () => {
-    if (typeof window === 'undefined') return;
+  // Sync user role from metadata to localStorage and cookies
+  const syncUserRole = (user: any) => {
+    if (typeof window === 'undefined' || !user) return;
     
     try {
-      const userRole = localStorage.getItem('userRole');
-      if (userRole) {
-        // Set cookie that will be accessible by the middleware
-        Cookies.set('userRole', userRole, { 
-          path: '/', 
-          expires: 7,
-          secure: window.location.protocol === 'https:',
-          sameSite: 'lax' // Changed from default to 'lax' for better compatibility
-        });
-        console.log('Synced user role to cookie:', userRole);
-      }
+      const userRole = user.user_metadata?.user_type || 'customer';
+      // Set role in localStorage
+      localStorage.setItem('userRole', userRole);
+      
+      // Set cookie that will be accessible by the middleware
+      Cookies.set('userRole', userRole, { 
+        path: '/', 
+        expires: 7,
+        secure: window.location.protocol === 'https:',
+        sameSite: 'lax'
+      });
+      console.log('Synced user role to cookie:', userRole);
     } catch (error) {
       console.error('Error syncing user role:', error);
     }
@@ -54,9 +55,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const { data: { session } } = await supabaseClient.auth.getSession();
         setUser(session?.user || null);
         
-        // If user is logged in, sync the role
+        // If user is logged in, sync the role from metadata
         if (session?.user) {
-          syncUserRole();
+          syncUserRole(session.user);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
@@ -74,12 +75,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         (_event, session) => {
           setUser(session?.user || null);
           
-          // If user is logged in, sync the role
+          // If user is logged in, sync the role from metadata
           if (session?.user) {
-            syncUserRole();
+            syncUserRole(session.user);
           } else {
-            // If logged out, clear the role cookie
+            // If logged out, clear the role cookie and localStorage
             Cookies.remove('userRole', { path: '/' });
+            localStorage.removeItem('userRole');
           }
           
           setLoading(false);
@@ -110,7 +112,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const safeSignIn = async (data: any) => {
     try {
-      return await supabaseClient.auth.signInWithPassword(data);
+      const result = await supabaseClient.auth.signInWithPassword(data);
+      if (result.data?.user) {
+        syncUserRole(result.data.user);
+      }
+      return result;
     } catch (error) {
       console.error('Error during sign in:', error);
       return { error, data: null };
@@ -119,7 +125,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const safeSignOut = async () => {
     try {
-      // Clear role cookie on sign out
+      // Clear role cookie and localStorage on sign out
       Cookies.remove('userRole', { path: '/' });
       localStorage.removeItem('userRole');
       return await supabaseClient.auth.signOut();
@@ -150,10 +156,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+} 
