@@ -1,17 +1,11 @@
 "use client";
 
 import { useState } from 'react';
-import { Metadata } from 'next';
 import ContactForm from '@/components/ContactForm';
 import MainLayout from '@/components/layouts/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
-
-export const metadata: Metadata = {
-  title: 'Contact Us | RiderApp',
-  description: 'Get in touch with RiderApp for inquiries, support, or to become a driver or customer.',
-};
 
 export default function ContactPage() {
   const [activeTab, setActiveTab] = useState<string>('general');
