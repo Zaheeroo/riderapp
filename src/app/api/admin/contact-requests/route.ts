@@ -102,13 +102,25 @@ export async function PUT(request: Request) {
     }
     
     // Get request data
-    const { id, status, adminNotes } = await request.json();
+    const { id, status, adminNotes, createAccount, userType } = await request.json();
     
     if (!id || !status) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
-    // Update contact request
+    // Get the contact request details
+    const { data: contactRequest, error: fetchError } = await supabase
+      .from('contact_requests')
+      .select('*')
+      .eq('id', id)
+      .single();
+      
+    if (fetchError || !contactRequest) {
+      console.error('Error fetching contact request:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch contact request details' }, { status: 500 });
+    }
+    
+    // Update contact request status
     const { error: updateError } = await supabase
       .from('contact_requests')
       .update({
@@ -123,7 +135,94 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Failed to update contact request' }, { status: 500 });
     }
     
-    return NextResponse.json({ success: true });
+    // If approved and createAccount is true, create a new user account
+    if (status === 'approved' && createAccount) {
+      try {
+        // Generate a random password
+        const tempPassword = Math.random().toString(36).slice(-8);
+        
+        // Create auth user
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: contactRequest.email,
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: {
+            name: contactRequest.name,
+            phone: contactRequest.phone,
+            user_type: userType
+          }
+        });
+        
+        if (authError || !authUser.user) {
+          throw new Error(authError?.message || 'Failed to create user account');
+        }
+        
+        // Add user to the appropriate table based on user type
+        if (userType === 'driver') {
+          const { error: driverError } = await supabase
+            .from('drivers')
+            .insert({
+              user_id: authUser.user.id,
+              name: contactRequest.name,
+              email: contactRequest.email,
+              phone: contactRequest.phone,
+              status: 'Active',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+            
+          if (driverError) {
+            throw new Error(driverError.message || 'Failed to create driver profile');
+          }
+        } else if (userType === 'customer') {
+          const { error: customerError } = await supabase
+            .from('customers')
+            .insert({
+              user_id: authUser.user.id,
+              name: contactRequest.name,
+              email: contactRequest.email,
+              phone: contactRequest.phone,
+              status: 'Active',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+            
+          if (customerError) {
+            throw new Error(customerError.message || 'Failed to create customer profile');
+          }
+        }
+        
+        // Add user to users table with role
+        const { error: userRoleError } = await supabase
+          .from('users')
+          .insert({
+            id: authUser.user.id,
+            email: contactRequest.email,
+            role: userType,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+          
+        if (userRoleError) {
+          throw new Error(userRoleError.message || 'Failed to set user role');
+        }
+        
+        // In a real app, you would send an email with the temporary password
+        console.log(`Created user account for ${contactRequest.name} with temp password: ${tempPassword}`);
+      } catch (error: any) {
+        console.error('Error creating user account:', error);
+        return NextResponse.json({ 
+          error: `Contact request updated but failed to create user account: ${error.message}` 
+        }, { status: 500 });
+      }
+    }
+    
+    return NextResponse.json({ 
+      success: true,
+      message: status === 'approved' && createAccount 
+        ? 'Contact request approved and user account created' 
+        : 'Contact request updated'
+    });
   } catch (error: any) {
     console.error('Error in contact requests API:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });

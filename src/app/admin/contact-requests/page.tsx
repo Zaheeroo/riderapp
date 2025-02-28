@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Mail, Phone, Search, Check, X, User, Calendar } from "lucide-react";
+import { Mail, Phone, Search, Check, X, User, Calendar, Home, Car, Users, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 // Custom hook for device detection
 function useDeviceType() {
@@ -67,6 +68,7 @@ type ContactRequest = {
 export default function ContactRequestsPage() {
   const { isMobile } = useDeviceType();
   const router = useRouter();
+  const { toast } = useToast();
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -75,6 +77,8 @@ export default function ContactRequestsPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
+  const [createAccount, setCreateAccount] = useState(false);
+  const [userType, setUserType] = useState<'customer' | 'driver'>('customer');
 
   // Fetch contact requests
   useEffect(() => {
@@ -167,8 +171,32 @@ export default function ContactRequestsPage() {
     
     setProcessingAction(true);
     try {
-      // In a real app, you would call your API to approve the request
-      // For now, we'll just update the local state
+      // Get the auth token from session storage
+      const session = JSON.parse(localStorage.getItem('sb-yrlmworxjpihnwiapjnm-auth-token') || '{}');
+      const token = session?.access_token;
+      
+      // Call API to approve the request and create user account
+      const response = await fetch('/api/admin/contact-requests', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({
+          id: selectedRequest.id,
+          status: 'approved',
+          adminNotes: adminNotes || '',
+          createAccount,
+          userType
+        }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to approve request');
+      }
+      
+      // Update local state
       const updatedRequests = contactRequests.map(req => 
         req.id === selectedRequest.id ? { ...req, status: 'Approved', updated_at: new Date().toISOString() } : req
       );
@@ -178,11 +206,21 @@ export default function ContactRequestsPage() {
       setShowDetailsModal(false);
       setSelectedRequest(null);
       
-      // Show success message
-      alert('Contact request approved successfully!');
+      // Show success toast
+      toast({
+        title: "Request Approved",
+        description: createAccount 
+          ? `${selectedRequest.name}'s request has been approved and their account has been created.`
+          : `${selectedRequest.name}'s request has been approved.`,
+        variant: "success",
+      });
     } catch (error: any) {
       console.error('Error approving request:', error);
-      alert('Failed to approve request: ' + (error.message || 'Unknown error'));
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to approve request',
+        variant: "destructive",
+      });
     } finally {
       setProcessingAction(false);
     }
@@ -194,8 +232,31 @@ export default function ContactRequestsPage() {
     
     setProcessingAction(true);
     try {
-      // In a real app, you would call your API to reject the request
-      // For now, we'll just update the local state
+      // Get the auth token from session storage
+      const session = JSON.parse(localStorage.getItem('sb-yrlmworxjpihnwiapjnm-auth-token') || '{}');
+      const token = session?.access_token;
+      
+      // Call API to reject the request
+      const response = await fetch('/api/admin/contact-requests', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({
+          id: selectedRequest.id,
+          status: 'rejected',
+          adminNotes: adminNotes || '',
+          createAccount: false
+        }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to reject request');
+      }
+      
+      // Update local state
       const updatedRequests = contactRequests.map(req => 
         req.id === selectedRequest.id ? { ...req, status: 'Rejected', updated_at: new Date().toISOString() } : req
       );
@@ -205,11 +266,19 @@ export default function ContactRequestsPage() {
       setShowDetailsModal(false);
       setSelectedRequest(null);
       
-      // Show success message
-      alert('Contact request rejected successfully!');
+      // Show success toast
+      toast({
+        title: "Request Rejected",
+        description: `${selectedRequest.name}'s request has been rejected.`,
+        variant: "default",
+      });
     } catch (error: any) {
       console.error('Error rejecting request:', error);
-      alert('Failed to reject request: ' + (error.message || 'Unknown error'));
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to reject request',
+        variant: "destructive",
+      });
     } finally {
       setProcessingAction(false);
     }
@@ -302,6 +371,63 @@ export default function ContactRequestsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Mobile Navigation Cards (only visible on mobile) */}
+        {isMobile && (
+          <div className="grid grid-cols-2 gap-4 md:hidden">
+            <Card className="col-span-1">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                <Button 
+                  variant="ghost" 
+                  className="w-full h-full flex flex-col items-center justify-center gap-2"
+                  onClick={() => router.push('/admin')}
+                >
+                  <Home className="h-6 w-6" />
+                  <span className="text-sm font-medium">Dashboard</span>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="col-span-1">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                <Button 
+                  variant="ghost" 
+                  className="w-full h-full flex flex-col items-center justify-center gap-2"
+                  onClick={() => router.push('/admin/drivers')}
+                >
+                  <Car className="h-6 w-6" />
+                  <span className="text-sm font-medium">Drivers</span>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="col-span-1">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                <Button 
+                  variant="ghost" 
+                  className="w-full h-full flex flex-col items-center justify-center gap-2"
+                  onClick={() => router.push('/admin/customers')}
+                >
+                  <Users className="h-6 w-6" />
+                  <span className="text-sm font-medium">Customers</span>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="col-span-1">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                <Button 
+                  variant="ghost" 
+                  className="w-full h-full flex flex-col items-center justify-center gap-2"
+                  onClick={() => router.push('/admin/messages')}
+                >
+                  <MessageSquare className="h-6 w-6" />
+                  <span className="text-sm font-medium">Messages</span>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Contact Requests List */}
         <Card>
@@ -501,6 +627,53 @@ export default function ContactRequestsPage() {
                   className="min-h-[100px]"
                 />
               </div>
+              
+              {selectedRequest?.status === 'Pending' && (
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="createAccount"
+                      checked={createAccount}
+                      onChange={(e) => setCreateAccount(e.target.checked)}
+                      className="rounded"
+                    />
+                    <label htmlFor="createAccount" className="text-sm font-medium">
+                      Create user account when approving
+                    </label>
+                  </div>
+                  
+                  {createAccount && (
+                    <div className="pl-6 space-y-2">
+                      <p className="text-sm font-medium">User Type</p>
+                      <div className="flex space-x-4">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="userType"
+                            value="customer"
+                            checked={userType === 'customer'}
+                            onChange={() => setUserType('customer')}
+                            className="mr-2"
+                          />
+                          <span className="text-sm">Customer</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="userType"
+                            value="driver"
+                            checked={userType === 'driver'}
+                            onChange={() => setUserType('driver')}
+                            className="mr-2"
+                          />
+                          <span className="text-sm">Driver</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           
