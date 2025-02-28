@@ -289,7 +289,10 @@ export default function DriversPage() {
       }
       
       // Success - close modal and reset form
-      alert('Driver created successfully!');
+      toast({
+        title: "Driver Created",
+        description: "Driver has been created successfully.",
+      });
       closeDriverModal();
       fetchDrivers(); // Refresh the driver list
       

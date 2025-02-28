@@ -203,8 +203,12 @@ export default function AdminDashboard() {
       }
       
       // Success - close modal and reset form
-      alert('Driver created successfully!');
+      toast({
+        title: "Driver Created",
+        description: "Driver has been created successfully.",
+      });
       closeDriverModal();
+      fetchDrivers(); // Refresh the driver list
       
     } catch (error: any) {
       console.error('Error creating driver:', error);
@@ -247,8 +251,12 @@ export default function AdminDashboard() {
       }
       
       // Success - close modal and reset form
-      alert('Customer created successfully!');
+      toast({
+        title: "Customer Created",
+        description: "Customer has been created successfully.",
+      });
       closeCustomerModal();
+      fetchCustomers(); // Refresh the customer list
       
     } catch (error: any) {
       console.error('Error creating customer:', error);
