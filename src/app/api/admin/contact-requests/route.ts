@@ -104,11 +104,19 @@ export async function PUT(request: Request) {
               email: contactRequest.email,
               phone: contactRequest.phone,
               status: 'Active',
+              // Add default vehicle details for drivers
+              vehicle_model: 'Not specified',
+              vehicle_year: 'Not specified',
+              vehicle_plate: 'Not specified',
+              vehicle_color: 'Not specified',
+              rating: 5.0,
+              total_rides: 0,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             });
             
           if (driverError) {
+            console.error('Error creating driver profile:', driverError);
             throw new Error(driverError.message || 'Failed to create driver profile');
           }
         } else if (userType === 'customer') {
@@ -120,11 +128,17 @@ export async function PUT(request: Request) {
               email: contactRequest.email,
               phone: contactRequest.phone,
               status: 'Active',
+              // Add default values for customers
+              location: '',
+              rating: 5.0,
+              total_rides: 0,
+              total_spent: 0,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             });
             
           if (customerError) {
+            console.error('Error creating customer profile:', customerError);
             throw new Error(customerError.message || 'Failed to create customer profile');
           }
         }

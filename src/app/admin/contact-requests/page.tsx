@@ -77,8 +77,6 @@ export default function ContactRequestsPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
-  const [createAccount, setCreateAccount] = useState(false);
-  const [userType, setUserType] = useState<'customer' | 'driver'>('customer');
 
   // Fetch contact requests
   useEffect(() => {
@@ -173,14 +171,14 @@ export default function ContactRequestsPage() {
           id: selectedRequest.id,
           status: 'approved',
           adminNotes: adminNotes || '',
-          createAccount,
-          userType
+          createAccount: true,
+          userType: selectedRequest.user_type
         }),
       });
       
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to approve request');
+        throw new Error(data.error || 'Failed to update contact request');
       }
       
       // Update local state
@@ -196,9 +194,7 @@ export default function ContactRequestsPage() {
       // Show success toast
       toast({
         title: "Request Approved",
-        description: createAccount 
-          ? `${selectedRequest.name}'s request has been approved and their account has been created.`
-          : `${selectedRequest.name}'s request has been approved.`,
+        description: `${selectedRequest.name}'s request has been approved and their account has been created.`,
         variant: "success",
       });
     } catch (error: any) {
@@ -235,7 +231,7 @@ export default function ContactRequestsPage() {
       
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to reject request');
+        throw new Error(data.error || 'Failed to update contact request');
       }
       
       // Update local state
@@ -609,53 +605,6 @@ export default function ContactRequestsPage() {
                   className="min-h-[100px]"
                 />
               </div>
-              
-              {selectedRequest?.status === 'Pending' && (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="createAccount"
-                      checked={createAccount}
-                      onChange={(e) => setCreateAccount(e.target.checked)}
-                      className="rounded"
-                    />
-                    <label htmlFor="createAccount" className="text-sm font-medium">
-                      Create user account when approving
-                    </label>
-                  </div>
-                  
-                  {createAccount && (
-                    <div className="pl-6 space-y-2">
-                      <p className="text-sm font-medium">User Type</p>
-                      <div className="flex space-x-4">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="userType"
-                            value="customer"
-                            checked={userType === 'customer'}
-                            onChange={() => setUserType('customer')}
-                            className="mr-2"
-                          />
-                          <span className="text-sm">Customer</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="userType"
-                            value="driver"
-                            checked={userType === 'driver'}
-                            onChange={() => setUserType('driver')}
-                            className="mr-2"
-                          />
-                          <span className="text-sm">Driver</span>
-                        </label>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
           
