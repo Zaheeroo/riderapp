@@ -117,6 +117,8 @@ export async function PUT(request: Request) {
             
           if (driverError) {
             console.error('Error creating driver profile:', driverError);
+            // If profile creation fails, delete the auth user to maintain consistency
+            await supabase.auth.admin.deleteUser(authUser.user.id);
             throw new Error(driverError.message || 'Failed to create driver profile');
           }
         } else if (userType === 'customer') {
@@ -139,6 +141,8 @@ export async function PUT(request: Request) {
             
           if (customerError) {
             console.error('Error creating customer profile:', customerError);
+            // If profile creation fails, delete the auth user to maintain consistency
+            await supabase.auth.admin.deleteUser(authUser.user.id);
             throw new Error(customerError.message || 'Failed to create customer profile');
           }
         }
