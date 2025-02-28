@@ -181,7 +181,7 @@ export default function DriversPage() {
   // Fetch drivers from the API
   const fetchDrivers = async () => {
     setIsLoading(true);
-    setError(null);
+    setError('');
     
     try {
       const response = await fetch('/api/admin/drivers');
@@ -314,7 +314,7 @@ export default function DriversPage() {
     }
     
     setIsSubmitting(true);
-    setError(null);
+    setError('');
     
     try {
       const response = await fetch(`/api/admin/drivers/${selectedDriver.id}`, {
@@ -363,7 +363,7 @@ export default function DriversPage() {
     if (!selectedDriver) return;
     
     setIsSubmitting(true);
-    setError(null);
+    setError('');
     
     try {
       const response = await fetch(`/api/admin/drivers/${selectedDriver.id}`, {
