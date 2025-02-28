@@ -86,16 +86,8 @@ export default function ContactRequestsPage() {
       try {
         setLoading(true);
         
-        // Get the auth token from session storage
-        const session = JSON.parse(localStorage.getItem('sb-yrlmworxjpihnwiapjnm-auth-token') || '{}');
-        const token = session?.access_token;
-        
-        // Fetch contact requests with authorization header
-        const response = await fetch('/api/admin/contact-requests', {
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : ''
-          }
-        });
+        // Fetch contact requests
+        const response = await fetch('/api/admin/contact-requests');
         
         if (!response.ok) {
           throw new Error('Failed to fetch contact requests');
@@ -171,16 +163,11 @@ export default function ContactRequestsPage() {
     
     setProcessingAction(true);
     try {
-      // Get the auth token from session storage
-      const session = JSON.parse(localStorage.getItem('sb-yrlmworxjpihnwiapjnm-auth-token') || '{}');
-      const token = session?.access_token;
-      
       // Call API to approve the request and create user account
       const response = await fetch('/api/admin/contact-requests', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           id: selectedRequest.id,
@@ -232,16 +219,11 @@ export default function ContactRequestsPage() {
     
     setProcessingAction(true);
     try {
-      // Get the auth token from session storage
-      const session = JSON.parse(localStorage.getItem('sb-yrlmworxjpihnwiapjnm-auth-token') || '{}');
-      const token = session?.access_token;
-      
       // Call API to reject the request
       const response = await fetch('/api/admin/contact-requests', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify({
           id: selectedRequest.id,
