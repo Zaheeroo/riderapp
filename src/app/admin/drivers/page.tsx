@@ -18,6 +18,14 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 // Custom hook for device detection
 function useDeviceType() {
@@ -122,6 +130,89 @@ const dummyDriversExtended = [
 
 export default function DriversPage() {
   const { isMobile } = useDeviceType();
+  const [showAddDriverModal, setShowAddDriverModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Driver form state
+  const [driverName, setDriverName] = useState('');
+  const [driverEmail, setDriverEmail] = useState('');
+  const [driverPhone, setDriverPhone] = useState('');
+  const [driverPassword, setDriverPassword] = useState('');
+  const [vehicleModel, setVehicleModel] = useState('');
+  const [vehicleYear, setVehicleYear] = useState('');
+  const [vehiclePlate, setVehiclePlate] = useState('');
+  const [vehicleColor, setVehicleColor] = useState('');
+  
+  // Reset form state
+  const resetDriverForm = () => {
+    setDriverName('');
+    setDriverEmail('');
+    setDriverPhone('');
+    setDriverPassword('');
+    setVehicleModel('');
+    setVehicleYear('');
+    setVehiclePlate('');
+    setVehicleColor('');
+    setError('');
+  };
+  
+  // Handle modal close
+  const closeDriverModal = () => {
+    resetDriverForm();
+    setShowAddDriverModal(false);
+  };
+  
+  // Handle form submission
+  const handleAddDriver = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+    
+    try {
+      // Validate form
+      if (!driverName || !driverEmail || !driverPhone || !driverPassword || 
+          !vehicleModel || !vehicleYear || !vehiclePlate || !vehicleColor) {
+        throw new Error('Please fill in all fields');
+      }
+      
+      // Create the driver in Supabase
+      const response = await fetch('/api/admin/create-driver', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: driverName,
+          email: driverEmail,
+          phone: driverPhone,
+          password: driverPassword,
+          vehicle: {
+            model: vehicleModel,
+            year: vehicleYear,
+            plate: vehiclePlate,
+            color: vehicleColor
+          }
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create driver');
+      }
+      
+      // Success - close modal and reset form
+      alert('Driver created successfully!');
+      closeDriverModal();
+      
+    } catch (error: any) {
+      console.error('Error creating driver:', error);
+      setError(error.message || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <DashboardLayout userType="admin">
@@ -133,7 +224,7 @@ export default function DriversPage() {
               Manage and monitor your driver fleet
             </p>
           </div>
-          <Button>
+          <Button onClick={() => setShowAddDriverModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Driver
           </Button>
@@ -376,6 +467,114 @@ export default function DriversPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Driver Modal */}
+      <Dialog open={showAddDriverModal} onOpenChange={setShowAddDriverModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Driver</DialogTitle>
+            <DialogDescription>Create a new driver account</DialogDescription>
+          </DialogHeader>
+          {error && (
+            <div className="mb-4 p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md">
+              {error}
+            </div>
+          )}
+          <form className="space-y-4" id="add-driver-form" onSubmit={handleAddDriver}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input 
+                value={driverName}
+                onChange={(e) => setDriverName(e.target.value)}
+                placeholder="Full Name" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <Input 
+                value={driverEmail}
+                onChange={(e) => setDriverEmail(e.target.value)}
+                type="email" 
+                placeholder="email@example.com" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone</label>
+              <Input 
+                value={driverPhone}
+                onChange={(e) => setDriverPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Password</label>
+              <Input 
+                value={driverPassword}
+                onChange={(e) => setDriverPassword(e.target.value)}
+                type="password" 
+                placeholder="Create a strong password" 
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Vehicle Model</label>
+                <Input 
+                  value={vehicleModel}
+                  onChange={(e) => setVehicleModel(e.target.value)}
+                  placeholder="Toyota Camry" 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Vehicle Year</label>
+                <Input 
+                  value={vehicleYear}
+                  onChange={(e) => setVehicleYear(e.target.value)}
+                  placeholder="2023" 
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">License Plate</label>
+                <Input 
+                  value={vehiclePlate}
+                  onChange={(e) => setVehiclePlate(e.target.value)}
+                  placeholder="ABC-123" 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Vehicle Color</label>
+                <Input 
+                  value={vehicleColor}
+                  onChange={(e) => setVehicleColor(e.target.value)}
+                  placeholder="Silver" 
+                  required
+                />
+              </div>
+            </div>
+          </form>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDriverModal} type="button">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddDriver} 
+              disabled={isSubmitting}
+              type="submit"
+              form="add-driver-form"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Driver'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 } 

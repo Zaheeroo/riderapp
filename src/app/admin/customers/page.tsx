@@ -18,6 +18,14 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 // Custom hook for device detection
 function useDeviceType() {
@@ -104,6 +112,77 @@ const dummyCustomersExtended = [
 
 export default function CustomersPage() {
   const { isMobile } = useDeviceType();
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Customer form state
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerPassword, setCustomerPassword] = useState('');
+  const [customerLocation, setCustomerLocation] = useState('');
+  
+  // Reset form state
+  const resetCustomerForm = () => {
+    setCustomerName('');
+    setCustomerEmail('');
+    setCustomerPhone('');
+    setCustomerPassword('');
+    setCustomerLocation('');
+    setError('');
+  };
+  
+  // Handle modal close
+  const closeCustomerModal = () => {
+    resetCustomerForm();
+    setShowAddCustomerModal(false);
+  };
+  
+  // Handle form submission
+  const handleAddCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
+    
+    try {
+      // Validate form
+      if (!customerName || !customerEmail || !customerPhone || !customerPassword) {
+        throw new Error('Please fill in all required fields');
+      }
+      
+      // Create the customer in Supabase
+      const response = await fetch('/api/admin/create-customer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+          password: customerPassword,
+          location: customerLocation
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create customer');
+      }
+      
+      // Success - close modal and reset form
+      alert('Customer created successfully!');
+      closeCustomerModal();
+      
+    } catch (error: any) {
+      console.error('Error creating customer:', error);
+      setError(error.message || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <DashboardLayout userType="admin">
@@ -115,7 +194,7 @@ export default function CustomersPage() {
               Manage and monitor your customer base
             </p>
           </div>
-          <Button>
+          <Button onClick={() => setShowAddCustomerModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Customer
           </Button>
@@ -353,6 +432,82 @@ export default function CustomersPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Customer Modal */}
+      <Dialog open={showAddCustomerModal} onOpenChange={setShowAddCustomerModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Customer</DialogTitle>
+            <DialogDescription>Create a new customer account</DialogDescription>
+          </DialogHeader>
+          {error && (
+            <div className="mb-4 p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md">
+              {error}
+            </div>
+          )}
+          <form className="space-y-4" id="add-customer-form" onSubmit={handleAddCustomer}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input 
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Full Name" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <Input 
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                type="email" 
+                placeholder="email@example.com" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone</label>
+              <Input 
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="+1 (555) 123-4567" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Password</label>
+              <Input 
+                value={customerPassword}
+                onChange={(e) => setCustomerPassword(e.target.value)}
+                type="password" 
+                placeholder="Create a strong password" 
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Location</label>
+              <Input 
+                value={customerLocation}
+                onChange={(e) => setCustomerLocation(e.target.value)}
+                placeholder="City, Country" 
+              />
+            </div>
+          </form>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeCustomerModal} type="button">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddCustomer} 
+              disabled={isSubmitting}
+              type="submit"
+              form="add-customer-form"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Customer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 } 
