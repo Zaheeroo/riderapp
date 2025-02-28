@@ -6,7 +6,7 @@ import { useAuth } from "../../../contexts";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { dummyAdminStats, dummyCommunication, dummyDriversExtended, dummyCustomersExtended } from "@/data/dummy";
+import { dummyAdminStats, dummyCommunication } from "@/data/dummy";
 import { Car, MapPin, Plus, Clock, Phone, Star, DollarSign, MessageSquare, ArrowRight, Users, Mail, Search, Pencil, Eye, Trash, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,41 +40,52 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 
-type Ride = {
-  id: string;
-  customerName: string;
-  destination: string;
-  status: string;
-  time: string;
-  driverName: string;
+// Define types for Driver and Customer
+type Vehicle = {
+  model: string;
+  year: string;
+  plate: string;
+  color: string;
 };
 
-const rides: Ride[] = [
-  {
-    id: "1",
-    customerName: "John Smith",
-    destination: "Manuel Antonio",
-    status: "Confirmed",
-    time: "10:00 AM",
-    driverName: "Carlos M."
-  },
-  {
-    id: "2",
-    customerName: "Emma Wilson",
-    destination: "Tamarindo",
-    status: "In Progress",
-    time: "11:30 AM",
-    driverName: "Maria R."
-  },
-  {
-    id: "3",
-    customerName: "Michael Brown",
-    destination: "Jaco Beach",
-    status: "Completed",
-    time: "2:00 PM",
-    driverName: "Juan P."
-  }
-];
+type Driver = {
+  id: string;
+  user_id?: string;
+  name: string;
+  email: string;
+  phone: string;
+  status?: string;
+  vehicle: Vehicle;
+  rating?: number;
+  totalRides?: number;
+  earnings?: {
+    today: number;
+    week: number;
+    month: number;
+  };
+  created_at?: string;
+  updated_at?: string;
+};
+
+type Customer = {
+  id: string;
+  user_id?: string;
+  name: string;
+  email: string;
+  phone: string;
+  location?: string;
+  status?: string;
+  rating?: number;
+  totalRides?: number;
+  totalSpent?: number;
+  preferences?: {
+    language: string;
+    currency: string;
+    notifications: string;
+  };
+  created_at?: string;
+  updated_at?: string;
+};
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -88,11 +99,19 @@ export default function AdminDashboard() {
   const [showEditCustomerModal, setShowEditCustomerModal] = useState(false);
   const [showDeleteDriverConfirmation, setShowDeleteDriverConfirmation] = useState(false);
   const [showDeleteCustomerConfirmation, setShowDeleteCustomerConfirmation] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState<any>(null);
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const { toast } = useToast();
+  
+  // Add state for drivers and customers
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loadingDrivers, setLoadingDrivers] = useState(false);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [driversError, setDriversError] = useState('');
+  const [customersError, setCustomersError] = useState('');
   
   // Driver form state
   const [driverName, setDriverName] = useState('');
@@ -239,6 +258,91 @@ export default function AdminDashboard() {
     }
   };
   
+  // Fetch drivers from API
+  const fetchDrivers = async () => {
+    setLoadingDrivers(true);
+    setDriversError('');
+    
+    try {
+      const response = await fetch('/api/admin/drivers');
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to fetch drivers');
+      }
+      
+      const data = await response.json();
+      
+      // Add default values for any missing fields
+      const processedDrivers = data.map((driver: any) => ({
+        ...driver,
+        status: driver.status || 'Active',
+        rating: driver.rating || 4.5,
+        totalRides: driver.totalRides || 0,
+        earnings: driver.earnings || {
+          today: 0,
+          week: 0,
+          month: 0
+        },
+        vehicle: driver.vehicle || {
+          model: 'Unknown',
+          year: 'Unknown',
+          plate: 'Unknown',
+          color: 'Unknown'
+        }
+      }));
+      
+      setDrivers(processedDrivers);
+    } catch (error: any) {
+      console.error('Error fetching drivers:', error);
+      setDriversError(error.message || 'An error occurred');
+    } finally {
+      setLoadingDrivers(false);
+    }
+  };
+  
+  // Fetch customers from API
+  const fetchCustomers = async () => {
+    setLoadingCustomers(true);
+    setCustomersError('');
+    
+    try {
+      const response = await fetch('/api/admin/customers');
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to fetch customers');
+      }
+      
+      const data = await response.json();
+      
+      // Add default values for any missing fields
+      const processedCustomers = data.map((customer: any) => ({
+        ...customer,
+        status: customer.status || 'Active',
+        rating: customer.rating || 4.5,
+        totalRides: customer.totalRides || 0,
+        totalSpent: customer.totalSpent || 0,
+        location: customer.location || 'Not specified'
+      }));
+      
+      setCustomers(processedCustomers);
+    } catch (error: any) {
+      console.error('Error fetching customers:', error);
+      setCustomersError(error.message || 'An error occurred');
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
+  
+  // Fetch data on component mount
+  useEffect(() => {
+    if (user) {
+      fetchDrivers();
+      fetchCustomers();
+    }
+  }, [user]);
+  
   // Check if user is authenticated and has admin role
   useEffect(() => {
     console.log("Admin page auth check - User:", !!user, "Loading:", loading);
@@ -340,7 +444,7 @@ export default function AdminDashboard() {
                           <SelectValue placeholder="Assign Driver" />
                         </SelectTrigger>
                         <SelectContent>
-                          {dummyDriversExtended.map((driver) => (
+                          {drivers.map((driver) => (
                             <SelectItem key={driver.id} value={driver.name}>
                               <div className="flex flex-col">
                                 <span>{driver.name}</span>
@@ -396,7 +500,7 @@ export default function AdminDashboard() {
                             <SelectValue placeholder="Assign Driver" />
                           </SelectTrigger>
                           <SelectContent>
-                            {dummyDriversExtended.map((driver) => (
+                            {drivers.map((driver) => (
                               <SelectItem key={driver.id} value={driver.name}>
                                 <div className="flex flex-col">
                                   <span>{driver.name}</span>
@@ -458,71 +562,32 @@ export default function AdminDashboard() {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className={cn(
-          isMobile ? "max-h-[300px]" : "max-h-[400px]"
-        )}>
-          {isMobile ? (
-            // Mobile view - Card layout
-            <div className="divide-y">
-              {dummyDriversExtended.map((driver) => (
-                <div key={driver.id} className="p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{driver.name}</p>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Mail className="mr-1 h-3 w-3" />
-                        {driver.email}
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Phone className="mr-1 h-3 w-3" />
-                        {driver.phone}
-                      </div>
-                    </div>
-                    <div className={cn(
-                      "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                      driver.status === "Active"
-                        ? "bg-green-500/10 text-green-500"
-                        : "bg-yellow-500/10 text-yellow-500"
-                    )}>
-                      {driver.status}
-                    </div>
+        {driversError && (
+          <div className="p-4 text-sm text-red-600 bg-red-50 border-l-4 border-red-600">
+            Error loading drivers: {driversError}
+          </div>
+        )}
+        
+        {loadingDrivers ? (
+          <div className="flex justify-center items-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <ScrollArea className={cn(
+            isMobile ? "max-h-[300px]" : "max-h-[400px]"
+          )}>
+            {isMobile ? (
+              // Mobile view - Card layout
+              <div className="divide-y">
+                {drivers.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    No drivers found
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center">
-                        <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
-                        <span className="font-medium">{driver.rating}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {driver.totalRides} rides • ${driver.earnings.month} this month
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">View</Button>
-                      <Button size="sm">Edit</Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Desktop view - Table layout
-            <div className="min-w-[800px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Driver</TableHead>
-                    <TableHead>Vehicle</TableHead>
-                    <TableHead>Stats</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dummyDriversExtended.map((driver) => (
-                    <TableRow key={driver.id}>
-                      <TableCell>
-                        <div className="space-y-1">
+                ) : (
+                  drivers.map((driver) => (
+                    <div key={driver.id} className="p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
                           <p className="font-medium">{driver.name}</p>
                           <div className="flex items-center text-xs text-muted-foreground">
                             <Mail className="mr-1 h-3 w-3" />
@@ -533,33 +598,6 @@ export default function AdminDashboard() {
                             {driver.phone}
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-medium">{driver.vehicle.model}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {driver.vehicle.color} • {driver.vehicle.year}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {driver.vehicle.plate}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center">
-                            <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
-                            <span className="font-medium">{driver.rating}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {driver.totalRides} rides
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            ${driver.earnings.month} this month
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
                         <div className={cn(
                           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
                           driver.status === "Active"
@@ -568,42 +606,145 @@ export default function AdminDashboard() {
                         )}>
                           {driver.status}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center">
+                            <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
+                            <span className="font-medium">{driver.rating}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {driver.totalRides} rides • ${driver.earnings?.month || 0} this month
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => handleViewDriver(driver)}
                           >
-                            <Eye className="h-3.5 w-3.5 mr-1" />
                             View
                           </Button>
                           <Button 
-                            variant="outline" 
                             size="sm"
                             onClick={() => handleEditDriver(driver)}
                           >
-                            <Pencil className="h-3.5 w-3.5 mr-1" />
                             Edit
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => handleDeleteDriver(driver)}
-                          >
-                            <Trash className="h-3.5 w-3.5" />
-                          </Button>
                         </div>
-                      </TableCell>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              // Desktop view - Table layout
+              <div className="min-w-[800px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Driver</TableHead>
+                      <TableHead>Vehicle</TableHead>
+                      <TableHead>Stats</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </ScrollArea>
+                  </TableHeader>
+                  <TableBody>
+                    {drivers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          No drivers found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      drivers.map((driver) => (
+                        <TableRow key={driver.id}>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="font-medium">{driver.name}</p>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Mail className="mr-1 h-3 w-3" />
+                                {driver.email}
+                              </div>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Phone className="mr-1 h-3 w-3" />
+                                {driver.phone}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="font-medium">{driver.vehicle?.model || 'N/A'}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {driver.vehicle?.color || 'N/A'} • {driver.vehicle?.year || 'N/A'}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {driver.vehicle?.plate || 'N/A'}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center">
+                                <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
+                                <span className="font-medium">{driver.rating}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {driver.totalRides} rides
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                ${driver.earnings?.month || 0} this month
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className={cn(
+                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                              driver.status === "Active"
+                                ? "bg-green-500/10 text-green-500"
+                                : "bg-yellow-500/10 text-yellow-500"
+                            )}>
+                              {driver.status}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleViewDriver(driver)}
+                              >
+                                <Eye className="h-3.5 w-3.5 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleEditDriver(driver)}
+                              >
+                                <Pencil className="h-3.5 w-3.5 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-red-500 hover:text-red-700"
+                                onClick={() => handleDeleteDriver(driver)}
+                              >
+                                <Trash className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );
@@ -634,71 +775,32 @@ export default function AdminDashboard() {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className={cn(
-          isMobile ? "max-h-[300px]" : "max-h-[400px]"
-        )}>
-          {isMobile ? (
-            // Mobile view - Card layout
-            <div className="divide-y">
-              {dummyCustomersExtended.map((customer) => (
-                <div key={customer.id} className="p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{customer.name}</p>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Mail className="mr-1 h-3 w-3" />
-                        {customer.email}
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Phone className="mr-1 h-3 w-3" />
-                        {customer.phone}
-                      </div>
-                    </div>
-                    <div className={cn(
-                      "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                      customer.status === "Active"
-                        ? "bg-green-500/10 text-green-500"
-                        : "bg-yellow-500/10 text-yellow-500"
-                    )}>
-                      {customer.status}
-                    </div>
+        {customersError && (
+          <div className="p-4 text-sm text-red-600 bg-red-50 border-l-4 border-red-600">
+            Error loading customers: {customersError}
+          </div>
+        )}
+        
+        {loadingCustomers ? (
+          <div className="flex justify-center items-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <ScrollArea className={cn(
+            isMobile ? "max-h-[300px]" : "max-h-[400px]"
+          )}>
+            {isMobile ? (
+              // Mobile view - Card layout
+              <div className="divide-y">
+                {customers.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    No customers found
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center">
-                        <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
-                        <span className="font-medium">{customer.rating}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {customer.totalRides} rides • ${customer.totalSpent} total spent
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">View</Button>
-                      <Button size="sm">Edit</Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Desktop view - Table layout
-            <div className="min-w-[800px]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Stats</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dummyCustomersExtended.map((customer) => (
-                    <TableRow key={customer.id}>
-                      <TableCell>
-                        <div className="space-y-1">
+                ) : (
+                  customers.map((customer) => (
+                    <div key={customer.id} className="p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
                           <p className="font-medium">{customer.name}</p>
                           <div className="flex items-center text-xs text-muted-foreground">
                             <Mail className="mr-1 h-3 w-3" />
@@ -709,28 +811,6 @@ export default function AdminDashboard() {
                             {customer.phone}
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <MapPin className="mr-1 h-3 w-3 text-muted-foreground" />
-                          {customer.location}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center">
-                            <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
-                            <span className="font-medium">{customer.rating}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {customer.totalRides} rides
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            ${customer.totalSpent} total spent
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
                         <div className={cn(
                           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
                           customer.status === "Active"
@@ -739,42 +819,140 @@ export default function AdminDashboard() {
                         )}>
                           {customer.status}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center">
+                            <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
+                            <span className="font-medium">{customer.rating}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {customer.totalRides} rides • ${customer.totalSpent} total spent
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => handleViewCustomer(customer)}
                           >
-                            <Eye className="h-3.5 w-3.5 mr-1" />
                             View
                           </Button>
                           <Button 
-                            variant="outline" 
                             size="sm"
                             onClick={() => handleEditCustomer(customer)}
                           >
-                            <Pencil className="h-3.5 w-3.5 mr-1" />
                             Edit
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="text-red-500 hover:text-red-700"
-                            onClick={() => handleDeleteCustomer(customer)}
-                          >
-                            <Trash className="h-3.5 w-3.5" />
-                          </Button>
                         </div>
-                      </TableCell>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              // Desktop view - Table layout
+              <div className="min-w-[800px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Stats</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </ScrollArea>
+                  </TableHeader>
+                  <TableBody>
+                    {customers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          No customers found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      customers.map((customer) => (
+                        <TableRow key={customer.id}>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="font-medium">{customer.name}</p>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Mail className="mr-1 h-3 w-3" />
+                                {customer.email}
+                              </div>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Phone className="mr-1 h-3 w-3" />
+                                {customer.phone}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <MapPin className="mr-1 h-3 w-3 text-muted-foreground" />
+                              {customer.location || 'Not specified'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center">
+                                <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
+                                <span className="font-medium">{customer.rating}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {customer.totalRides} rides
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                ${customer.totalSpent} total spent
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className={cn(
+                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                              customer.status === "Active"
+                                ? "bg-green-500/10 text-green-500"
+                                : "bg-yellow-500/10 text-yellow-500"
+                            )}>
+                              {customer.status}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleViewCustomer(customer)}
+                              >
+                                <Eye className="h-3.5 w-3.5 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleEditCustomer(customer)}
+                              >
+                                <Pencil className="h-3.5 w-3.5 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-red-500 hover:text-red-700"
+                                onClick={() => handleDeleteCustomer(customer)}
+                              >
+                                <Trash className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );
@@ -844,13 +1022,13 @@ export default function AdminDashboard() {
   );
 
   // Handle view driver
-  const handleViewDriver = (driver: any) => {
+  const handleViewDriver = (driver: Driver) => {
     setSelectedDriver(driver);
     setShowViewDriverModal(true);
   };
 
   // Handle edit driver
-  const handleEditDriver = (driver: any) => {
+  const handleEditDriver = (driver: Driver) => {
     setSelectedDriver(driver);
     setDriverName(driver.name);
     setDriverEmail(driver.email);
@@ -863,19 +1041,19 @@ export default function AdminDashboard() {
   };
 
   // Handle delete driver
-  const handleDeleteDriver = (driver: any) => {
+  const handleDeleteDriver = (driver: Driver) => {
     setSelectedDriver(driver);
     setShowDeleteDriverConfirmation(true);
   };
 
   // Handle view customer
-  const handleViewCustomer = (customer: any) => {
+  const handleViewCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
     setShowViewCustomerModal(true);
   };
 
   // Handle edit customer
-  const handleEditCustomer = (customer: any) => {
+  const handleEditCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
     setCustomerName(customer.name);
     setCustomerEmail(customer.email);
@@ -885,7 +1063,7 @@ export default function AdminDashboard() {
   };
 
   // Handle delete customer
-  const handleDeleteCustomer = (customer: any) => {
+  const handleDeleteCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
     setShowDeleteCustomerConfirmation(true);
   };
@@ -913,7 +1091,8 @@ export default function AdminDashboard() {
       });
       setShowDeleteDriverConfirmation(false);
       setSelectedDriver(null);
-      // Refresh the driver list (you'll need to implement this)
+      // Refresh the driver list
+      fetchDrivers();
       
     } catch (error: any) {
       console.error('Error deleting driver:', error);
@@ -946,7 +1125,8 @@ export default function AdminDashboard() {
       });
       setShowDeleteCustomerConfirmation(false);
       setSelectedCustomer(null);
-      // Refresh the customer list (you'll need to implement this)
+      // Refresh the customer list
+      fetchCustomers();
       
     } catch (error: any) {
       console.error('Error deleting customer:', error);
@@ -1000,7 +1180,8 @@ export default function AdminDashboard() {
         description: "Driver information has been updated successfully.",
       });
       setShowEditDriverModal(false);
-      // Refresh the driver list (you'll need to implement this)
+      // Refresh the driver list
+      fetchDrivers();
       
     } catch (error: any) {
       console.error('Error updating driver:', error);
@@ -1048,7 +1229,8 @@ export default function AdminDashboard() {
         description: "Customer information has been updated successfully.",
       });
       setShowEditCustomerModal(false);
-      // Refresh the customer list (you'll need to implement this)
+      // Refresh the customer list
+      fetchCustomers();
       
     } catch (error: any) {
       console.error('Error updating customer:', error);
@@ -1489,15 +1671,15 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div>
                     <span className="text-muted-foreground">Today:</span>{' '}
-                    ${selectedDriver.earnings.today}
+                    ${selectedDriver.earnings?.today || 0}
                   </div>
                   <div>
                     <span className="text-muted-foreground">Week:</span>{' '}
-                    ${selectedDriver.earnings.week}
+                    ${selectedDriver.earnings?.week || 0}
                   </div>
                   <div>
                     <span className="text-muted-foreground">Month:</span>{' '}
-                    ${selectedDriver.earnings.month}
+                    ${selectedDriver.earnings?.month || 0}
                   </div>
                 </div>
               </div>
