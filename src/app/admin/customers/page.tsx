@@ -27,6 +27,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { createClient } from '@supabase/supabase-js';
+import { useToast } from "@/components/ui/use-toast";
 
 // Custom hook for device detection
 function useDeviceType() {
@@ -135,6 +136,7 @@ const dummyCustomersExtended = [
 
 export default function CustomersPage() {
   const { isMobile } = useDeviceType();
+  const { toast } = useToast();
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [showViewCustomerModal, setShowViewCustomerModal] = useState(false);
   const [showEditCustomerModal, setShowEditCustomerModal] = useState(false);
@@ -158,36 +160,24 @@ export default function CustomersPage() {
     fetchCustomers();
   }, []);
   
-  // Fetch customers from the database
+  // Fetch customers from the API
   const fetchCustomers = async () => {
     setIsLoading(true);
+    setError('');
+    
     try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-      );
+      const response = await fetch('/api/admin/customers');
       
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .order('created_at', { ascending: false });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch customers');
+      }
       
-      if (error) throw error;
-      
-      // Add preferences to match the UI expectations
-      const customersWithPreferences = data.map(customer => ({
-        ...customer,
-        preferences: {
-          language: 'English',
-          currency: 'USD',
-          notifications: 'Email'
-        }
-      }));
-      
-      setCustomers(customersWithPreferences);
-    } catch (error: any) {
-      console.error('Error fetching customers:', error);
-      setError(error.message || 'Failed to fetch customers');
+      const data = await response.json();
+      setCustomers(data);
+    } catch (err: any) {
+      console.error('Error fetching customers:', err);
+      setError(err.message || 'Failed to fetch customers');
     } finally {
       setIsLoading(false);
     }
@@ -270,7 +260,10 @@ export default function CustomersPage() {
       }
       
       // Success - close modal and reset form
-      alert('Customer created successfully!');
+      toast({
+        title: "Customer Created",
+        description: "Customer has been created successfully.",
+      });
       closeCustomerModal();
       fetchCustomers(); // Refresh the customer list
       
@@ -318,7 +311,10 @@ export default function CustomersPage() {
       }
       
       // Success - close modal and reset form
-      alert('Customer updated successfully!');
+      toast({
+        title: "Customer Updated",
+        description: "Customer information has been updated successfully.",
+      });
       closeCustomerModal();
       fetchCustomers(); // Refresh the customer list
       
@@ -335,6 +331,7 @@ export default function CustomersPage() {
     if (!selectedCustomer) return;
     
     setIsSubmitting(true);
+    setError('');
     
     try {
       // Delete the customer from Supabase
@@ -348,14 +345,17 @@ export default function CustomersPage() {
       }
       
       // Success - close modal
-      alert('Customer deleted successfully!');
+      toast({
+        title: "Customer Deleted",
+        description: "Customer has been deleted successfully.",
+      });
       setShowDeleteConfirmation(false);
       setSelectedCustomer(null);
       fetchCustomers(); // Refresh the customer list
       
     } catch (error: any) {
       console.error('Error deleting customer:', error);
-      alert(`Error: ${error.message || 'An error occurred'}`);
+      setError(error.message || 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
