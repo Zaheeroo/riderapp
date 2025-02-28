@@ -81,9 +81,17 @@ export default function ContactRequestsPage() {
     const fetchContactRequests = async () => {
       try {
         setLoading(true);
-        // In a real app, you would fetch from your API
-        // For now, we'll use a mock implementation
-        const response = await fetch('/api/admin/contact-requests');
+        
+        // Get the auth token from session storage
+        const session = JSON.parse(localStorage.getItem('sb-yrlmworxjpihnwiapjnm-auth-token') || '{}');
+        const token = session?.access_token;
+        
+        // Fetch contact requests with authorization header
+        const response = await fetch('/api/admin/contact-requests', {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : ''
+          }
+        });
         
         if (!response.ok) {
           throw new Error('Failed to fetch contact requests');
