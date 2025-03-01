@@ -242,6 +242,8 @@ export async function PUT(request: Request) {
         
         // Send welcome email with login credentials
         try {
+          console.log(`Attempting to send welcome email to ${contactRequest.email}`);
+          
           const emailResult = await sendWelcomeEmail(
             contactRequest.email,
             contactRequest.name,
@@ -250,12 +252,20 @@ export async function PUT(request: Request) {
           );
           
           if (emailResult.error) {
-            console.warn(`Email sent with errors: ${emailResult.error}`);
+            console.warn(`Email sending encountered an error: ${emailResult.error}`);
+            // Log more details about the email attempt
+            console.log(`Email details: To: ${contactRequest.email}, User type: ${userType}`);
           } else {
-            console.log(`Welcome email sent to ${contactRequest.email}`);
+            console.log(`Welcome email successfully sent to ${contactRequest.email} with ID: ${emailResult.id}`);
           }
         } catch (emailError: any) {
-          console.error('Error sending welcome email:', emailError);
+          console.error('Error in email sending process:', emailError);
+          // Log the error details for debugging
+          console.error('Error details:', JSON.stringify({
+            message: emailError.message,
+            stack: emailError.stack,
+            name: emailError.name
+          }));
           // Don't fail the operation if email sending fails
           console.log('Continuing despite email sending error');
         }

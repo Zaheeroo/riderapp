@@ -4,6 +4,29 @@
  * In a production environment, you would integrate with a real email service
  */
 
+import { Resend } from 'resend';
+
+// Define a consistent return type for email operations
+export interface EmailResult {
+  id: string;
+  from: string;
+  to: string[];
+  created_at: string;
+  error?: string;
+}
+
+// Initialize Resend with API key if available
+let resend: Resend | null = null;
+try {
+  if (process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  } else {
+    console.warn('RESEND_API_KEY is not defined in environment variables');
+  }
+} catch (error) {
+  console.error('Failed to initialize Resend:', error);
+}
+
 // Default sender email
 const DEFAULT_FROM = 'noreply@jacorides.com';
 
@@ -21,7 +44,7 @@ export async function sendWelcomeEmail(
   name: string,
   password: string,
   userType: string
-) {
+): Promise<EmailResult> {
   try {
     // Capitalize the first letter of the user type
     const capitalizedUserType = userType.charAt(0).toUpperCase() + userType.slice(1);
@@ -63,23 +86,69 @@ export async function sendWelcomeEmail(
       </div>
     `;
     
-    // In a real application, you would use an email service like SendGrid, Mailgun, etc.
-    // For now, we'll just log the email content for debugging
-    console.log('Email service would have sent:');
-    console.log(`To: ${to}`);
-    console.log(`Subject: Welcome to Jaco Rides - Your Account is Ready`);
-    console.log(`Password for user: ${password}`);
-    
-    // Return a mock successful result
-    return {
-      id: 'mock-email-id',
-      from: DEFAULT_FROM,
-      to: [to],
-      created_at: new Date().toISOString(),
-    };
+    // If Resend is available, use it to send the email
+    if (resend) {
+      console.log('Using Resend API to send email');
+      try {
+        const resendResult = await resend.emails.send({
+          from: DEFAULT_FROM,
+          to,
+          subject: `Welcome to Jaco Rides - Your Account is Ready`,
+          html: emailHtml,
+        });
+        
+        // Convert Resend result to our consistent EmailResult format
+        // Handle both success and error cases from Resend
+        if ('error' in resendResult && resendResult.error) {
+          return {
+            id: 'resend-api-error',
+            from: DEFAULT_FROM,
+            to: [to],
+            created_at: new Date().toISOString(),
+            error: typeof resendResult.error === 'string' 
+              ? resendResult.error 
+              : JSON.stringify(resendResult.error)
+          };
+        } else {
+          return {
+            // For successful responses, Resend provides an id
+            id: 'data' in resendResult && resendResult.data?.id 
+              ? resendResult.data.id 
+              : 'unknown-id',
+            from: DEFAULT_FROM,
+            to: [to],
+            created_at: new Date().toISOString()
+          };
+        }
+      } catch (resendError) {
+        console.error('Resend API error:', resendError);
+        return {
+          id: 'resend-error',
+          from: DEFAULT_FROM,
+          to: [to],
+          created_at: new Date().toISOString(),
+          error: String(resendError)
+        };
+      }
+    } else {
+      // Fallback: Log the email content for debugging
+      console.log('Email service not available. Would have sent:');
+      console.log(`To: ${to}`);
+      console.log(`Subject: Welcome to Jaco Rides - Your Account is Ready`);
+      console.log(`Password for user: ${password}`);
+      
+      // Return a mock successful result
+      return {
+        id: 'mock-email-id',
+        from: DEFAULT_FROM,
+        to: [to],
+        created_at: new Date().toISOString(),
+        error: 'RESEND_API_KEY not configured. Email not actually sent.'
+      };
+    }
   } catch (error) {
     console.error('Error sending welcome email:', error);
-    // Don't throw the error, just log it and return a mock result
+    // Don't throw the error, just log it and return a result with error info
     return {
       id: 'error-email-id',
       from: DEFAULT_FROM,
