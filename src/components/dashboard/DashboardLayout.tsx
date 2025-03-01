@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Car, Home, LogOut, Menu, Users, Calendar, X, MessageSquare, ArrowLeft, ClipboardList } from "lucide-react";
 import Link from "next/link";
@@ -17,8 +17,17 @@ interface DashboardLayoutProps {
   showMobileHeader?: boolean;
 }
 
+// Define the navigation item type
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+}
+
 export default function DashboardLayout({ children, userType, showMobileHeader = true }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuth();
@@ -29,14 +38,39 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
   // Get parent route for back navigation
   const parentRoute = pathname?.split('/').slice(0, -1).join('/');
 
-  const navigation = {
+  // Fetch pending contact requests count
+  useEffect(() => {
+    if (userType === 'admin') {
+      const fetchPendingRequestsCount = async () => {
+        try {
+          const response = await fetch('/api/admin/contact-requests/count');
+          if (response.ok) {
+            const data = await response.json();
+            setPendingRequests(data.count || 0);
+          }
+        } catch (error) {
+          console.error('Error fetching pending requests count:', error);
+        }
+      };
+
+      // Fetch immediately
+      fetchPendingRequestsCount();
+      
+      // Set up polling every 30 seconds
+      const interval = setInterval(fetchPendingRequestsCount, 30000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [userType]);
+
+  const navigation: Record<string, NavigationItem[]> = {
     admin: [
       { name: "Dashboard", href: "/admin", icon: Home },
       { name: "Rides", href: "/admin/rides", icon: Calendar },
       { name: "Drivers", href: "/admin/drivers", icon: Car },
       { name: "Customers", href: "/admin/customers", icon: Users },
       { name: "Messages", href: "/admin/messages", icon: MessageSquare },
-      { name: "Contact Requests", href: "/admin/contact-requests", icon: ClipboardList },
+      { name: "Contact Requests", href: "/admin/contact-requests", icon: ClipboardList, badge: pendingRequests },
     ],
     driver: [
       { name: "Dashboard", href: "/driver", icon: Home },
@@ -112,11 +146,18 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
                     <li key={item.name}>
                       <Link
                         href={item.href}
-                        className="flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-foreground hover:bg-accent hover:text-accent-foreground"
+                        className="flex items-center justify-between rounded-md p-2 text-sm font-semibold leading-6 text-foreground hover:bg-accent hover:text-accent-foreground"
                         onClick={() => setSidebarOpen(false)}
                       >
-                        <item.icon className="h-6 w-6 shrink-0" />
-                        {item.name}
+                        <div className="flex items-center gap-x-3">
+                          <item.icon className="h-6 w-6 shrink-0" />
+                          {item.name}
+                        </div>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                            {item.badge}
+                          </span>
+                        )}
                       </Link>
                     </li>
                   ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Mail, Phone, Search, Check, X, User, Calendar, Home, Car, Users, MessageSquare, ClipboardList } from "lucide-react";
+import { Mail, Phone, Search, Check, X, User, Calendar, Home, Car, Users, MessageSquare, ClipboardList, Bell, BellOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -77,6 +77,42 @@ export default function ContactRequestsPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const previousRequestCountRef = useRef(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio('/notification.mp3');
+    
+    // Check if sound notifications were previously disabled
+    const savedSoundPreference = localStorage.getItem('contactRequestsSoundEnabled');
+    if (savedSoundPreference !== null) {
+      setSoundEnabled(savedSoundPreference === 'true');
+    }
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Toggle sound notifications
+  const toggleSound = () => {
+    const newSoundEnabled = !soundEnabled;
+    setSoundEnabled(newSoundEnabled);
+    localStorage.setItem('contactRequestsSoundEnabled', newSoundEnabled.toString());
+    
+    toast({
+      title: newSoundEnabled ? "Sound notifications enabled" : "Sound notifications disabled",
+      description: newSoundEnabled 
+        ? "You will now hear a sound when new requests arrive" 
+        : "You will no longer hear sounds for new requests",
+      variant: "default",
+    });
+  };
 
   // Fetch contact requests
   const fetchContactRequests = async () => {
@@ -97,6 +133,34 @@ export default function ContactRequestsPage() {
       console.log('Contact requests data:', data);
       
       if (data.contactRequests && Array.isArray(data.contactRequests)) {
+        // Check if there are new pending requests
+        const pendingRequests = data.contactRequests.filter((req: ContactRequest) => 
+          req.status === 'Pending'
+        ).length;
+        
+        // If there are more pending requests than before and not the first load, play sound
+        if (
+          pendingRequests > previousRequestCountRef.current && 
+          previousRequestCountRef.current > 0 &&
+          soundEnabled &&
+          audioRef.current
+        ) {
+          audioRef.current.play().catch(err => {
+            console.error('Error playing notification sound:', err);
+          });
+          
+          // Show toast notification
+          toast({
+            title: "New Contact Request",
+            description: "You have received a new contact request",
+            variant: "default",
+          });
+        }
+        
+        // Update the reference count
+        previousRequestCountRef.current = pendingRequests;
+        
+        // Update state with new data
         setContactRequests(data.contactRequests);
       } else {
         console.warn('No contact requests found or invalid format:', data);
@@ -310,6 +374,14 @@ export default function ContactRequestsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleSound}
+              title={soundEnabled ? "Disable sound notifications" : "Enable sound notifications"}
+            >
+              {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+            </Button>
             <Button 
               variant="outline" 
               size="sm" 
