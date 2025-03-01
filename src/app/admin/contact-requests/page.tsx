@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Mail, Phone, Search, Check, X, User, Calendar, Home, Car, Users, MessageSquare } from "lucide-react";
+import { Mail, Phone, Search, Check, X, User, Calendar, Home, Car, Users, MessageSquare, ClipboardList } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -434,6 +434,19 @@ export default function ContactRequestsPage() {
                 >
                   <MessageSquare className="h-6 w-6" />
                   <span className="text-sm font-medium">Messages</span>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="col-span-1">
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                <Button 
+                  variant="ghost" 
+                  className="w-full h-full flex flex-col items-center justify-center gap-2"
+                  onClick={() => router.push('/admin/contact-requests')}
+                >
+                  <ClipboardList className="h-6 w-6" />
+                  <span className="text-sm font-medium">Requests</span>
                 </Button>
               </CardContent>
             </Card>

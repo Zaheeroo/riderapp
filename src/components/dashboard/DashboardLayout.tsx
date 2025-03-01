@@ -2,7 +2,7 @@
 
 import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Car, Home, LogOut, Menu, Users, Calendar, X, MessageSquare, ArrowLeft } from "lucide-react";
+import { Car, Home, LogOut, Menu, Users, Calendar, X, MessageSquare, ArrowLeft, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
       { name: "Drivers", href: "/admin/drivers", icon: Car },
       { name: "Customers", href: "/admin/customers", icon: Users },
       { name: "Messages", href: "/admin/messages", icon: MessageSquare },
-      { name: "Contact Requests", href: "/admin/contact-requests", icon: MessageSquare },
+      { name: "Contact Requests", href: "/admin/contact-requests", icon: ClipboardList },
     ],
     driver: [
       { name: "Dashboard", href: "/driver", icon: Home },
