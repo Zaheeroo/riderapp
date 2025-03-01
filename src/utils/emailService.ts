@@ -19,6 +19,7 @@ export interface EmailResult {
 let resend: Resend | null = null;
 try {
   if (process.env.RESEND_API_KEY) {
+    console.log('RESEND_API_KEY is defined, initializing Resend client');
     resend = new Resend(process.env.RESEND_API_KEY);
   } else {
     console.warn('RESEND_API_KEY is not defined in environment variables');
@@ -28,7 +29,10 @@ try {
 }
 
 // Default sender email
-const DEFAULT_FROM = 'noreply@jacorides.com';
+// IMPORTANT: This must be from a verified domain in Resend
+// Until your domain is verified, you can use a Resend-provided domain
+// const DEFAULT_FROM = 'noreply@jacorides.com'; // Use this after domain verification
+const DEFAULT_FROM = 'onboarding@resend.dev'; // Use this for testing before domain verification
 
 /**
  * Sends a welcome email to a new user with their login credentials
@@ -45,6 +49,8 @@ export async function sendWelcomeEmail(
   password: string,
   userType: string
 ): Promise<EmailResult> {
+  console.log(`[EMAIL SERVICE] Attempting to send welcome email to: ${to}`);
+  
   try {
     // Capitalize the first letter of the user type
     const capitalizedUserType = userType.charAt(0).toUpperCase() + userType.slice(1);
@@ -88,8 +94,11 @@ export async function sendWelcomeEmail(
     
     // If Resend is available, use it to send the email
     if (resend) {
-      console.log('Using Resend API to send email');
+      console.log('[EMAIL SERVICE] Using Resend API to send email');
+      console.log(`[EMAIL SERVICE] From: ${DEFAULT_FROM}, To: ${to}`);
+      
       try {
+        console.log('[EMAIL SERVICE] Calling Resend API...');
         const resendResult = await resend.emails.send({
           from: DEFAULT_FROM,
           to,
@@ -97,9 +106,12 @@ export async function sendWelcomeEmail(
           html: emailHtml,
         });
         
+        console.log('[EMAIL SERVICE] Resend API response:', JSON.stringify(resendResult));
+        
         // Convert Resend result to our consistent EmailResult format
         // Handle both success and error cases from Resend
         if ('error' in resendResult && resendResult.error) {
+          console.error('[EMAIL SERVICE] Resend API returned an error:', JSON.stringify(resendResult.error));
           return {
             id: 'resend-api-error',
             from: DEFAULT_FROM,
@@ -110,6 +122,7 @@ export async function sendWelcomeEmail(
               : JSON.stringify(resendResult.error)
           };
         } else {
+          console.log('[EMAIL SERVICE] Email sent successfully via Resend API');
           return {
             // For successful responses, Resend provides an id
             id: 'data' in resendResult && resendResult.data?.id 
@@ -121,7 +134,7 @@ export async function sendWelcomeEmail(
           };
         }
       } catch (resendError) {
-        console.error('Resend API error:', resendError);
+        console.error('[EMAIL SERVICE] Resend API error:', resendError);
         return {
           id: 'resend-error',
           from: DEFAULT_FROM,
@@ -132,10 +145,10 @@ export async function sendWelcomeEmail(
       }
     } else {
       // Fallback: Log the email content for debugging
-      console.log('Email service not available. Would have sent:');
-      console.log(`To: ${to}`);
-      console.log(`Subject: Welcome to Jaco Rides - Your Account is Ready`);
-      console.log(`Password for user: ${password}`);
+      console.log('[EMAIL SERVICE] Email service not available. Would have sent:');
+      console.log(`[EMAIL SERVICE] To: ${to}`);
+      console.log(`[EMAIL SERVICE] Subject: Welcome to Jaco Rides - Your Account is Ready`);
+      console.log(`[EMAIL SERVICE] Password for user: ${password}`);
       
       // Return a mock successful result
       return {
@@ -147,7 +160,7 @@ export async function sendWelcomeEmail(
       };
     }
   } catch (error) {
-    console.error('Error sending welcome email:', error);
+    console.error('[EMAIL SERVICE] Error sending welcome email:', error);
     // Don't throw the error, just log it and return a result with error info
     return {
       id: 'error-email-id',
