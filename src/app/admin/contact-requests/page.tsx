@@ -29,6 +29,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "../../../../contexts/NotificationContext";
 
 // Custom hook for device detection
 function useDeviceType() {
@@ -69,6 +70,7 @@ export default function ContactRequestsPage() {
   const { isMobile } = useDeviceType();
   const router = useRouter();
   const { toast } = useToast();
+  const { soundEnabled, toggleSound, testSound } = useNotifications();
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -77,108 +79,7 @@ export default function ContactRequestsPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const previousRequestCountRef = useRef(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Initialize audio element
-  useEffect(() => {
-    // Create audio element with error handling
-    try {
-      const audio = new Audio('/notification.mp3');
-      
-      // Add event listeners for debugging
-      audio.addEventListener('error', (e) => {
-        console.error('Audio error:', e);
-        toast({
-          title: "Sound Error",
-          description: `Could not load sound: ${e.message || 'Unknown error'}`,
-          variant: "destructive",
-        });
-      });
-      
-      audio.addEventListener('canplaythrough', () => {
-        console.log('Audio loaded and can play');
-      });
-      
-      audioRef.current = audio;
-      
-      // Preload the audio
-      audio.load();
-      
-      console.log('Audio element created with source:', audio.src);
-    } catch (error) {
-      console.error('Error creating audio element:', error);
-    }
-    
-    // Check if sound notifications were previously disabled
-    const savedSoundPreference = localStorage.getItem('contactRequestsSoundEnabled');
-    if (savedSoundPreference !== null) {
-      setSoundEnabled(savedSoundPreference === 'true');
-    }
-    
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
-  // Test sound playback
-  const testSound = () => {
-    if (audioRef.current) {
-      console.log('Testing sound playback...');
-      
-      // Create a new audio instance for testing to avoid issues with the main one
-      const testAudio = new Audio('/notification.mp3');
-      
-      testAudio.play()
-        .then(() => {
-          console.log('Sound played successfully');
-          toast({
-            title: "Sound Test",
-            description: "Notification sound played successfully",
-            variant: "default",
-          });
-        })
-        .catch((err) => {
-          console.error('Error playing test sound:', err);
-          toast({
-            title: "Sound Test Failed",
-            description: `Could not play sound: ${err.message}. Check browser autoplay settings.`,
-            variant: "destructive",
-          });
-        });
-    } else {
-      console.error('Audio element not initialized');
-      toast({
-        title: "Sound Test Failed",
-        description: "Audio element not initialized",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Toggle sound notifications
-  const toggleSound = () => {
-    const newSoundEnabled = !soundEnabled;
-    setSoundEnabled(newSoundEnabled);
-    localStorage.setItem('contactRequestsSoundEnabled', newSoundEnabled.toString());
-    
-    toast({
-      title: newSoundEnabled ? "Sound notifications enabled" : "Sound notifications disabled",
-      description: newSoundEnabled 
-        ? "You will now hear a sound when new requests arrive" 
-        : "You will no longer hear sounds for new requests",
-      variant: "default",
-    });
-    
-    // Test sound if enabled
-    if (newSoundEnabled) {
-      testSound();
-    }
-  };
 
   // Fetch contact requests
   const fetchContactRequests = async () => {
@@ -199,46 +100,6 @@ export default function ContactRequestsPage() {
       console.log('Contact requests data:', data);
       
       if (data.contactRequests && Array.isArray(data.contactRequests)) {
-        // Check if there are new pending requests
-        const pendingRequests = data.contactRequests.filter((req: ContactRequest) => 
-          req.status === 'Pending'
-        ).length;
-        
-        // If there are more pending requests than before and not the first load, play sound
-        if (
-          pendingRequests > previousRequestCountRef.current && 
-          previousRequestCountRef.current > 0 &&
-          soundEnabled
-        ) {
-          console.log('New request detected, attempting to play sound...');
-          
-          // Create a new audio instance each time to avoid issues with reuse
-          const notificationAudio = new Audio('/notification.mp3');
-          
-          notificationAudio.play()
-            .then(() => {
-              console.log('Notification sound played successfully');
-            })
-            .catch((err) => {
-              console.error('Error playing notification sound:', err);
-              toast({
-                title: "Sound Playback Error",
-                description: `Could not play notification: ${err.message}. Check browser autoplay settings.`,
-                variant: "destructive",
-              });
-            });
-          
-          // Show toast notification
-          toast({
-            title: "New Contact Request",
-            description: "You have received a new contact request",
-            variant: "default",
-          });
-        }
-        
-        // Update the reference count
-        previousRequestCountRef.current = pendingRequests;
-        
         // Update state with new data
         setContactRequests(data.contactRequests);
       } else {
@@ -288,19 +149,10 @@ export default function ContactRequestsPage() {
     }
   };
 
-  // Initial fetch and polling setup
+  // Initial fetch
   useEffect(() => {
     // Fetch contact requests immediately
     fetchContactRequests();
-    
-    // Set up polling every 30 seconds
-    const pollingInterval = setInterval(() => {
-      console.log('Polling for new contact requests...');
-      fetchContactRequests();
-    }, 30000); // 30 seconds
-    
-    // Clean up interval on component unmount
-    return () => clearInterval(pollingInterval);
   }, []);
 
   // Filter contact requests based on search term

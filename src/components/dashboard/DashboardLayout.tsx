@@ -1,14 +1,15 @@
 "use client";
 
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Car, Home, LogOut, Menu, Users, Calendar, X, MessageSquare, ArrowLeft, ClipboardList } from "lucide-react";
+import { Car, Home, LogOut, Menu, Users, Calendar, X, MessageSquare, ArrowLeft, ClipboardList, Bell, BellOff } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "../../../contexts";
+import { useNotifications } from "../../../contexts/NotificationContext";
 import Cookies from 'js-cookie';
 
 interface DashboardLayoutProps {
@@ -27,41 +28,16 @@ interface NavigationItem {
 
 export default function DashboardLayout({ children, userType, showMobileHeader = true }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [pendingRequests, setPendingRequests] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuth();
+  const { pendingRequests, soundEnabled, toggleSound } = useNotifications();
 
   // Check if current page is a subpage
   const isSubpage = pathname?.split('/').length > 2;
 
   // Get parent route for back navigation
   const parentRoute = pathname?.split('/').slice(0, -1).join('/');
-
-  // Fetch pending contact requests count
-  useEffect(() => {
-    if (userType === 'admin') {
-      const fetchPendingRequestsCount = async () => {
-        try {
-          const response = await fetch('/api/admin/contact-requests/count');
-          if (response.ok) {
-            const data = await response.json();
-            setPendingRequests(data.count || 0);
-          }
-        } catch (error) {
-          console.error('Error fetching pending requests count:', error);
-        }
-      };
-
-      // Fetch immediately
-      fetchPendingRequestsCount();
-      
-      // Set up polling every 30 seconds
-      const interval = setInterval(fetchPendingRequestsCount, 30000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [userType]);
 
   const navigation: Record<string, NavigationItem[]> = {
     admin: [
@@ -164,6 +140,25 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
                 </ul>
               </li>
               <li className="mt-auto">
+                {userType === 'admin' && (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-x-3 mb-2"
+                    onClick={toggleSound}
+                  >
+                    {soundEnabled ? (
+                      <>
+                        <Bell className="h-6 w-6 shrink-0" />
+                        Notifications On
+                      </>
+                    ) : (
+                      <>
+                        <BellOff className="h-6 w-6 shrink-0" />
+                        Notifications Off
+                      </>
+                    )}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-x-3"
@@ -209,6 +204,21 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
               <div className="flex flex-1"></div>
               <div className="flex items-center gap-x-4 lg:gap-x-6">
+                {userType === 'admin' && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSound}
+                    className="hidden md:flex"
+                    title={soundEnabled ? "Disable sound notifications" : "Enable sound notifications"}
+                  >
+                    {soundEnabled ? (
+                      <Bell className="h-5 w-5" />
+                    ) : (
+                      <BellOff className="h-5 w-5" />
+                    )}
+                  </Button>
+                )}
                 <ThemeToggle />
                 {/* Profile dropdown can be added here */}
               </div>
