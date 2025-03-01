@@ -61,21 +61,46 @@ export async function PUT(request: Request) {
     
     // Update contact request status
     console.log(`Attempting to update contact request status to: ${status}`);
-    const { error: updateError } = await supabase
-      .from('contact_requests')
-      .update({
-        status,
-        admin_notes: adminNotes || '',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id);
+    try {
+      const { error: updateError } = await supabase
+        .from('contact_requests')
+        .update({
+          status,
+          admin_notes: adminNotes || '',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+        
+      if (updateError) {
+        console.error('Error updating contact request:', JSON.stringify(updateError));
+        
+        // Check if the error is about the admin_notes column not existing
+        if (updateError.message && updateError.message.includes('admin_notes')) {
+          console.log('admin_notes column not found, trying update without it');
+          
+          // Try updating without the admin_notes column
+          const { error: retryError } = await supabase
+            .from('contact_requests')
+            .update({
+              status,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', id);
+            
+          if (retryError) {
+            console.error('Error on retry update:', JSON.stringify(retryError));
+            return NextResponse.json({ error: `Failed to update contact request: ${retryError.message}` }, { status: 500 });
+          }
+        } else {
+          return NextResponse.json({ error: `Failed to update contact request: ${updateError.message}` }, { status: 500 });
+        }
+      }
       
-    if (updateError) {
-      console.error('Error updating contact request:', JSON.stringify(updateError));
-      return NextResponse.json({ error: `Failed to update contact request: ${updateError.message}` }, { status: 500 });
+      console.log(`Successfully updated contact request ${id} to status: ${status}`);
+    } catch (error: any) {
+      console.error('Unexpected error during update:', error);
+      return NextResponse.json({ error: `Unexpected error: ${error.message}` }, { status: 500 });
     }
-    
-    console.log(`Successfully updated contact request ${id} to status: ${status}`);
     
     // If approved and createAccount is true, create a new user account
     if (status === 'approved' && createAccount) {
