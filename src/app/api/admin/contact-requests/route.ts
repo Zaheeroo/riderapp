@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { generateSecurePassword } from '@/utils/passwordGenerator';
+import { sendWelcomeEmail } from '@/utils/emailService';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -105,8 +107,8 @@ export async function PUT(request: Request) {
     // If approved and createAccount is true, create a new user account
     if (status === 'approved' && createAccount) {
       try {
-        // Generate a random password
-        const tempPassword = Math.random().toString(36).slice(-8);
+        // Generate a secure but legible password
+        const securePassword = generateSecurePassword();
         
         console.log(`Attempting to create user for ${contactRequest.email} with user type ${userType}`);
         
@@ -128,7 +130,7 @@ export async function PUT(request: Request) {
         // Create auth user with detailed error logging
         const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
           email: contactRequest.email,
-          password: tempPassword,
+          password: securePassword,
           email_confirm: true,
           user_metadata: {
             name: contactRequest.name,
@@ -238,8 +240,30 @@ export async function PUT(request: Request) {
           console.log('Continuing despite role setting error');
         }
         
-        // In a real app, you would send an email with the temporary password
-        console.log(`Created user account for ${contactRequest.name} with temp password: ${tempPassword}`);
+        // Send welcome email with login credentials
+        try {
+          const emailResult = await sendWelcomeEmail(
+            contactRequest.email,
+            contactRequest.name,
+            securePassword,
+            userType
+          );
+          
+          if (emailResult.error) {
+            console.warn(`Email sent with errors: ${emailResult.error}`);
+          } else {
+            console.log(`Welcome email sent to ${contactRequest.email}`);
+          }
+        } catch (emailError: any) {
+          console.error('Error sending welcome email:', emailError);
+          // Don't fail the operation if email sending fails
+          console.log('Continuing despite email sending error');
+        }
+        
+        // Always log the password for admin reference in case email fails
+        console.log(`IMPORTANT: User account created for ${contactRequest.name} with password: ${securePassword}`);
+        
+        console.log(`Created user account for ${contactRequest.name} with secure password`);
       } catch (error: any) {
         console.error('Error creating user account:', error);
         return NextResponse.json({ 
