@@ -29,10 +29,8 @@ try {
 }
 
 // Default sender email
-// IMPORTANT: This must be from a verified domain in Resend
-// Until your domain is verified, you can use a Resend-provided domain
-// const DEFAULT_FROM = 'noreply@jacorides.com'; // Use this after domain verification
-const DEFAULT_FROM = 'onboarding@resend.dev'; // Use this for testing before domain verification
+// Using the verified domain automateplus.co
+const DEFAULT_FROM = 'oburgos@automateplus.co'; // Verified domain email
 
 /**
  * Sends a welcome email to a new user with their login credentials
@@ -104,6 +102,7 @@ export async function sendWelcomeEmail(
           to,
           subject: `Welcome to Jaco Rides - Your Account is Ready`,
           html: emailHtml,
+          replyTo: 'support@jacorides.com', // Add reply-to address
         });
         
         console.log('[EMAIL SERVICE] Resend API response:', JSON.stringify(resendResult));
