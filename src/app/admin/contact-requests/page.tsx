@@ -79,74 +79,85 @@ export default function ContactRequestsPage() {
   const [processingAction, setProcessingAction] = useState(false);
 
   // Fetch contact requests
-  useEffect(() => {
-    const fetchContactRequests = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch contact requests
-        console.log('Fetching contact requests...');
-        const response = await fetch('/api/admin/contact-requests');
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Error response from API:', errorData);
-          throw new Error(errorData.error || 'Failed to fetch contact requests');
-        }
-        
-        const data = await response.json();
-        console.log('Contact requests data:', data);
-        
-        if (data.contactRequests && Array.isArray(data.contactRequests)) {
-          setContactRequests(data.contactRequests);
-        } else {
-          console.warn('No contact requests found or invalid format:', data);
-          // For demo purposes, set some dummy data
-          setContactRequests([
-            {
-              id: 1,
-              name: "John Smith",
-              email: "john@example.com",
-              phone: "+1 234-567-8900",
-              user_type: "customer",
-              message: "I'm planning a trip to Costa Rica next month and would like to use your service.",
-              status: "Pending",
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            {
-              id: 2,
-              name: "Maria Rodriguez",
-              email: "maria@example.com",
-              phone: "+506 8888-2222",
-              user_type: "driver",
-              message: "I have 5 years of experience as a driver and would like to join your platform.",
-              status: "Approved",
-              created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-              updated_at: new Date().toISOString()
-            },
-            {
-              id: 3,
-              name: "Carlos Martinez",
-              email: "carlos@example.com",
-              phone: "+506 8888-3333",
-              user_type: "driver",
-              message: "I own a 2022 Toyota Fortuner and would like to work with your company.",
-              status: "Rejected",
-              created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-              updated_at: new Date().toISOString()
-            }
-          ]);
-        }
-      } catch (error: any) {
-        console.error('Error fetching contact requests:', error);
-        setError(error.message || 'Failed to load contact requests');
-      } finally {
-        setLoading(false);
+  const fetchContactRequests = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch contact requests
+      console.log('Fetching contact requests...');
+      const response = await fetch('/api/admin/contact-requests');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response from API:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch contact requests');
       }
-    };
+      
+      const data = await response.json();
+      console.log('Contact requests data:', data);
+      
+      if (data.contactRequests && Array.isArray(data.contactRequests)) {
+        setContactRequests(data.contactRequests);
+      } else {
+        console.warn('No contact requests found or invalid format:', data);
+        // For demo purposes, set some dummy data
+        setContactRequests([
+          {
+            id: 1,
+            name: "John Smith",
+            email: "john@example.com",
+            phone: "+1 234-567-8900",
+            user_type: "customer",
+            message: "I'm planning a trip to Costa Rica next month and would like to use your service.",
+            status: "Pending",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            name: "Maria Rodriguez",
+            email: "maria@example.com",
+            phone: "+506 8888-2222",
+            user_type: "driver",
+            message: "I have 5 years of experience as a driver and would like to join your platform.",
+            status: "Approved",
+            created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 3,
+            name: "Carlos Martinez",
+            email: "carlos@example.com",
+            phone: "+506 8888-3333",
+            user_type: "driver",
+            message: "I own a 2022 Toyota Fortuner and would like to work with your company.",
+            status: "Rejected",
+            created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+            updated_at: new Date().toISOString()
+          }
+        ]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching contact requests:', error);
+      setError(error.message || 'Failed to load contact requests');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Initial fetch and polling setup
+  useEffect(() => {
+    // Fetch contact requests immediately
     fetchContactRequests();
+    
+    // Set up polling every 30 seconds
+    const pollingInterval = setInterval(() => {
+      console.log('Polling for new contact requests...');
+      fetchContactRequests();
+    }, 30000); // 30 seconds
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(pollingInterval);
   }, []);
 
   // Filter contact requests based on search term
@@ -195,15 +206,12 @@ export default function ContactRequestsPage() {
         throw new Error(responseData.error || 'Failed to update contact request');
       }
       
-      // Update local state
-      const updatedRequests = contactRequests.map(req => 
-        req.id === selectedRequest.id ? { ...req, status: 'Approved', updated_at: new Date().toISOString() } : req
-      );
-      setContactRequests(updatedRequests);
-      
       // Close the modal
       setShowDetailsModal(false);
       setSelectedRequest(null);
+      
+      // Fetch fresh data instead of updating local state
+      fetchContactRequests();
       
       // Show success toast
       toast({
@@ -253,15 +261,12 @@ export default function ContactRequestsPage() {
         throw new Error(responseData.error || 'Failed to update contact request');
       }
       
-      // Update local state
-      const updatedRequests = contactRequests.map(req => 
-        req.id === selectedRequest.id ? { ...req, status: 'Rejected', updated_at: new Date().toISOString() } : req
-      );
-      setContactRequests(updatedRequests);
-      
       // Close the modal
       setShowDetailsModal(false);
       setSelectedRequest(null);
+      
+      // Fetch fresh data instead of updating local state
+      fetchContactRequests();
       
       // Show success toast
       toast({
@@ -305,15 +310,24 @@ export default function ContactRequestsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Input
-              placeholder="Search requests..."
-              className="w-full sm:w-[300px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Button variant="outline">
-              <Search className="h-4 w-4" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={fetchContactRequests}
+              disabled={loading}
+            >
+              {loading ? "Refreshing..." : "Refresh"}
             </Button>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search requests..."
+                className="pl-8 w-full sm:w-[300px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
@@ -432,7 +446,13 @@ export default function ContactRequestsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg font-semibold">Account Requests</CardTitle>
-                <CardDescription>Review and manage account requests</CardDescription>
+                <CardDescription>
+                  {loading ? (
+                    <span className="text-blue-500">Refreshing data...</span>
+                  ) : (
+                    "Review and manage account requests"
+                  )}
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
