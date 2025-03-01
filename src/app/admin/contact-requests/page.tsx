@@ -83,7 +83,33 @@ export default function ContactRequestsPage() {
 
   // Initialize audio element
   useEffect(() => {
-    audioRef.current = new Audio('/notification.mp3');
+    // Create audio element with error handling
+    try {
+      const audio = new Audio('/notification.mp3');
+      
+      // Add event listeners for debugging
+      audio.addEventListener('error', (e) => {
+        console.error('Audio error:', e);
+        toast({
+          title: "Sound Error",
+          description: `Could not load sound: ${e.message || 'Unknown error'}`,
+          variant: "destructive",
+        });
+      });
+      
+      audio.addEventListener('canplaythrough', () => {
+        console.log('Audio loaded and can play');
+      });
+      
+      audioRef.current = audio;
+      
+      // Preload the audio
+      audio.load();
+      
+      console.log('Audio element created with source:', audio.src);
+    } catch (error) {
+      console.error('Error creating audio element:', error);
+    }
     
     // Check if sound notifications were previously disabled
     const savedSoundPreference = localStorage.getItem('contactRequestsSoundEnabled');
@@ -99,6 +125,41 @@ export default function ContactRequestsPage() {
     };
   }, []);
 
+  // Test sound playback
+  const testSound = () => {
+    if (audioRef.current) {
+      console.log('Testing sound playback...');
+      
+      // Create a new audio instance for testing to avoid issues with the main one
+      const testAudio = new Audio('/notification.mp3');
+      
+      testAudio.play()
+        .then(() => {
+          console.log('Sound played successfully');
+          toast({
+            title: "Sound Test",
+            description: "Notification sound played successfully",
+            variant: "default",
+          });
+        })
+        .catch((err) => {
+          console.error('Error playing test sound:', err);
+          toast({
+            title: "Sound Test Failed",
+            description: `Could not play sound: ${err.message}. Check browser autoplay settings.`,
+            variant: "destructive",
+          });
+        });
+    } else {
+      console.error('Audio element not initialized');
+      toast({
+        title: "Sound Test Failed",
+        description: "Audio element not initialized",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Toggle sound notifications
   const toggleSound = () => {
     const newSoundEnabled = !soundEnabled;
@@ -112,6 +173,11 @@ export default function ContactRequestsPage() {
         : "You will no longer hear sounds for new requests",
       variant: "default",
     });
+    
+    // Test sound if enabled
+    if (newSoundEnabled) {
+      testSound();
+    }
   };
 
   // Fetch contact requests
@@ -142,12 +208,25 @@ export default function ContactRequestsPage() {
         if (
           pendingRequests > previousRequestCountRef.current && 
           previousRequestCountRef.current > 0 &&
-          soundEnabled &&
-          audioRef.current
+          soundEnabled
         ) {
-          audioRef.current.play().catch(err => {
-            console.error('Error playing notification sound:', err);
-          });
+          console.log('New request detected, attempting to play sound...');
+          
+          // Create a new audio instance each time to avoid issues with reuse
+          const notificationAudio = new Audio('/notification.mp3');
+          
+          notificationAudio.play()
+            .then(() => {
+              console.log('Notification sound played successfully');
+            })
+            .catch((err) => {
+              console.error('Error playing notification sound:', err);
+              toast({
+                title: "Sound Playback Error",
+                description: `Could not play notification: ${err.message}. Check browser autoplay settings.`,
+                variant: "destructive",
+              });
+            });
           
           // Show toast notification
           toast({
@@ -382,6 +461,16 @@ export default function ContactRequestsPage() {
             >
               {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
             </Button>
+            {soundEnabled && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={testSound}
+                title="Test notification sound"
+              >
+                Test Sound
+              </Button>
+            )}
             <Button 
               variant="outline" 
               size="sm" 
