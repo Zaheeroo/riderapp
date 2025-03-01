@@ -206,18 +206,36 @@ export async function PUT(request: Request) {
         }
         
         // Add user to users table with role
-        const { error: userRoleError } = await supabase
-          .from('users')
-          .insert({
-            id: authUser.user.id,
-            email: contactRequest.email,
-            role: userType,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-          
-        if (userRoleError) {
-          throw new Error(userRoleError.message || 'Failed to set user role');
+        try {
+          const { error: userRoleError } = await supabase
+            .from('users')
+            .insert({
+              id: authUser.user.id,
+              email: contactRequest.email,
+              role: userType,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+            
+          if (userRoleError) {
+            console.error('Error setting user role:', JSON.stringify(userRoleError));
+            
+            // If the error is about the users table not existing, we can continue
+            // The user has been created in auth and in the appropriate profile table
+            if (userRoleError.message && (
+                userRoleError.message.includes('relation "users" does not exist') ||
+                userRoleError.message.includes('column "role" of relation "users" does not exist')
+              )) {
+              console.log('Users table or role column not found, but user was created successfully');
+            } else {
+              throw new Error(userRoleError.message || 'Failed to set user role');
+            }
+          }
+        } catch (roleError: any) {
+          console.error('Error setting user role:', roleError);
+          // We don't want to fail the entire operation if just the role setting fails
+          // The user has been created in auth and in the appropriate profile table
+          console.log('Continuing despite role setting error');
         }
         
         // In a real app, you would send an email with the temporary password

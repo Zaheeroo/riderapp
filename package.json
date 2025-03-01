@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "node supabase/apply-migrations.js",
-    "db:add-admin-notes": "node src/scripts/add-admin-notes-column.js"
+    "db:add-admin-notes": "node src/scripts/add-admin-notes-column.js",
+    "db:create-users-table": "node src/scripts/create-users-table.js",
+    "db:update-contact-policies": "node src/scripts/update-contact-requests-policies.js"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.3",
