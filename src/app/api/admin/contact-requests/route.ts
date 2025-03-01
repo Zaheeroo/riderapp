@@ -53,11 +53,14 @@ export async function PUT(request: Request) {
       .single();
       
     if (fetchError || !contactRequest) {
-      console.error('Error fetching contact request:', fetchError);
+      console.error('Error fetching contact request:', JSON.stringify(fetchError));
       return NextResponse.json({ error: 'Failed to fetch contact request details' }, { status: 500 });
     }
     
+    console.log(`Found contact request with ID ${id}:`, JSON.stringify(contactRequest));
+    
     // Update contact request status
+    console.log(`Attempting to update contact request status to: ${status}`);
     const { error: updateError } = await supabase
       .from('contact_requests')
       .update({
@@ -68,9 +71,11 @@ export async function PUT(request: Request) {
       .eq('id', id);
       
     if (updateError) {
-      console.error('Error updating contact request:', updateError);
-      return NextResponse.json({ error: 'Failed to update contact request' }, { status: 500 });
+      console.error('Error updating contact request:', JSON.stringify(updateError));
+      return NextResponse.json({ error: `Failed to update contact request: ${updateError.message}` }, { status: 500 });
     }
+    
+    console.log(`Successfully updated contact request ${id} to status: ${status}`);
     
     // If approved and createAccount is true, create a new user account
     if (status === 'approved' && createAccount) {
@@ -187,11 +192,8 @@ export async function PUT(request: Request) {
           });
           
         if (userRoleError) {
-          console.error('Error setting user role:', JSON.stringify(userRoleError));
-          throw new Error(`Failed to set user role: ${userRoleError.message}`);
+          throw new Error(userRoleError.message || 'Failed to set user role');
         }
-        
-        console.log(`User role set for user ID: ${authUser.user.id}`);
         
         // In a real app, you would send an email with the temporary password
         console.log(`Created user account for ${contactRequest.name} with temp password: ${tempPassword}`);

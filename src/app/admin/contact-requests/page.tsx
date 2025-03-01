@@ -85,53 +85,62 @@ export default function ContactRequestsPage() {
         setLoading(true);
         
         // Fetch contact requests
+        console.log('Fetching contact requests...');
         const response = await fetch('/api/admin/contact-requests');
         
         if (!response.ok) {
-          throw new Error('Failed to fetch contact requests');
+          const errorData = await response.json();
+          console.error('Error response from API:', errorData);
+          throw new Error(errorData.error || 'Failed to fetch contact requests');
         }
         
         const data = await response.json();
-        setContactRequests(data.contactRequests || []);
+        console.log('Contact requests data:', data);
+        
+        if (data.contactRequests && Array.isArray(data.contactRequests)) {
+          setContactRequests(data.contactRequests);
+        } else {
+          console.warn('No contact requests found or invalid format:', data);
+          // For demo purposes, set some dummy data
+          setContactRequests([
+            {
+              id: 1,
+              name: "John Smith",
+              email: "john@example.com",
+              phone: "+1 234-567-8900",
+              user_type: "customer",
+              message: "I'm planning a trip to Costa Rica next month and would like to use your service.",
+              status: "Pending",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            {
+              id: 2,
+              name: "Maria Rodriguez",
+              email: "maria@example.com",
+              phone: "+506 8888-2222",
+              user_type: "driver",
+              message: "I have 5 years of experience as a driver and would like to join your platform.",
+              status: "Approved",
+              created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+              updated_at: new Date().toISOString()
+            },
+            {
+              id: 3,
+              name: "Carlos Martinez",
+              email: "carlos@example.com",
+              phone: "+506 8888-3333",
+              user_type: "driver",
+              message: "I own a 2022 Toyota Fortuner and would like to work with your company.",
+              status: "Rejected",
+              created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+              updated_at: new Date().toISOString()
+            }
+          ]);
+        }
       } catch (error: any) {
         console.error('Error fetching contact requests:', error);
         setError(error.message || 'Failed to load contact requests');
-        // For demo purposes, set some dummy data
-        setContactRequests([
-          {
-            id: 1,
-            name: "John Smith",
-            email: "john@example.com",
-            phone: "+1 234-567-8900",
-            user_type: "customer",
-            message: "I'm planning a trip to Costa Rica next month and would like to use your service.",
-            status: "Pending",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 2,
-            name: "Maria Rodriguez",
-            email: "maria@example.com",
-            phone: "+506 8888-2222",
-            user_type: "driver",
-            message: "I have 5 years of experience as a driver and would like to join your platform.",
-            status: "Approved",
-            created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 3,
-            name: "Carlos Martinez",
-            email: "carlos@example.com",
-            phone: "+506 8888-3333",
-            user_type: "driver",
-            message: "I own a 2022 Toyota Fortuner and would like to work with your company.",
-            status: "Rejected",
-            created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-            updated_at: new Date().toISOString()
-          }
-        ]);
       } finally {
         setLoading(false);
       }
@@ -161,6 +170,8 @@ export default function ContactRequestsPage() {
     
     setProcessingAction(true);
     try {
+      console.log('Approving request:', selectedRequest.id);
+      
       // Call API to approve the request and create user account
       const response = await fetch('/api/admin/contact-requests', {
         method: 'PUT',
@@ -176,9 +187,12 @@ export default function ContactRequestsPage() {
         }),
       });
       
+      const responseData = await response.json();
+      console.log('API response:', responseData);
+      
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to update contact request');
+        console.error('API error response:', responseData);
+        throw new Error(responseData.error || 'Failed to update contact request');
       }
       
       // Update local state
@@ -215,6 +229,8 @@ export default function ContactRequestsPage() {
     
     setProcessingAction(true);
     try {
+      console.log('Rejecting request:', selectedRequest.id);
+      
       // Call API to reject the request
       const response = await fetch('/api/admin/contact-requests', {
         method: 'PUT',
@@ -229,9 +245,12 @@ export default function ContactRequestsPage() {
         }),
       });
       
+      const responseData = await response.json();
+      console.log('API response:', responseData);
+      
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to update contact request');
+        console.error('API error response:', responseData);
+        throw new Error(responseData.error || 'Failed to update contact request');
       }
       
       // Update local state
