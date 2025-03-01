@@ -1,5 +1,7 @@
-// Script to add admin_notes column to contact_requests table
+// Script to add admin_notes column to contact_requests table in Supabase
 const { createClient } = require('@supabase/supabase-js');
+const fs = require('fs');
+const path = require('path');
 
 // Load environment variables
 require('dotenv').config({ path: '.env.local' });
@@ -16,12 +18,14 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function addAdminNotesColumn() {
   try {
-    console.log('Adding admin_notes column to contact_requests table...');
+    console.log('Adding admin_notes column to contact_requests table if it doesn\'t exist...');
     
-    // Execute raw SQL query
-    const { error } = await supabase.rpc('setup_rls_policies', { 
-      sql: 'ALTER TABLE contact_requests ADD COLUMN IF NOT EXISTS admin_notes TEXT;' 
-    });
+    // Read the SQL file
+    const sqlPath = path.join(__dirname, '..', 'migrations', 'add_admin_notes_to_contact_requests.sql');
+    const sql = fs.readFileSync(sqlPath, 'utf8');
+    
+    // Execute the SQL directly
+    const { error } = await supabase.rpc('setup_rls_policies', { sql });
     
     if (error) {
       console.error('Error adding admin_notes column:', error);
