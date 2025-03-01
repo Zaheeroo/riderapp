@@ -78,7 +78,24 @@ export async function PUT(request: Request) {
         // Generate a random password
         const tempPassword = Math.random().toString(36).slice(-8);
         
-        // Create auth user
+        console.log(`Attempting to create user for ${contactRequest.email} with user type ${userType}`);
+        
+        // Check if user already exists
+        const { data: existingUser, error: checkError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', contactRequest.email)
+          .maybeSingle();
+          
+        if (checkError) {
+          console.error('Error checking for existing user:', checkError);
+        }
+        
+        if (existingUser) {
+          throw new Error(`User with email ${contactRequest.email} already exists`);
+        }
+        
+        // Create auth user with detailed error logging
         const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
           email: contactRequest.email,
           password: tempPassword,
@@ -90,9 +107,16 @@ export async function PUT(request: Request) {
           }
         });
         
-        if (authError || !authUser.user) {
-          throw new Error(authError?.message || 'Failed to create user account');
+        if (authError) {
+          console.error('Detailed auth error:', JSON.stringify(authError));
+          throw new Error(`Auth error: ${authError.message}`);
         }
+        
+        if (!authUser || !authUser.user) {
+          throw new Error('User creation succeeded but no user was returned');
+        }
+        
+        console.log(`Auth user created with ID: ${authUser.user.id}`);
         
         // Add user to the appropriate table based on user type
         if (userType === 'driver') {
@@ -116,11 +140,13 @@ export async function PUT(request: Request) {
             });
             
           if (driverError) {
-            console.error('Error creating driver profile:', driverError);
+            console.error('Error creating driver profile:', JSON.stringify(driverError));
             // If profile creation fails, delete the auth user to maintain consistency
             await supabase.auth.admin.deleteUser(authUser.user.id);
-            throw new Error(driverError.message || 'Failed to create driver profile');
+            throw new Error(`Failed to create driver profile: ${driverError.message}`);
           }
+          
+          console.log(`Driver profile created for user ID: ${authUser.user.id}`);
         } else if (userType === 'customer') {
           const { error: customerError } = await supabase
             .from('customers')
@@ -140,11 +166,13 @@ export async function PUT(request: Request) {
             });
             
           if (customerError) {
-            console.error('Error creating customer profile:', customerError);
+            console.error('Error creating customer profile:', JSON.stringify(customerError));
             // If profile creation fails, delete the auth user to maintain consistency
             await supabase.auth.admin.deleteUser(authUser.user.id);
-            throw new Error(customerError.message || 'Failed to create customer profile');
+            throw new Error(`Failed to create customer profile: ${customerError.message}`);
           }
+          
+          console.log(`Customer profile created for user ID: ${authUser.user.id}`);
         }
         
         // Add user to users table with role
@@ -159,8 +187,11 @@ export async function PUT(request: Request) {
           });
           
         if (userRoleError) {
-          throw new Error(userRoleError.message || 'Failed to set user role');
+          console.error('Error setting user role:', JSON.stringify(userRoleError));
+          throw new Error(`Failed to set user role: ${userRoleError.message}`);
         }
+        
+        console.log(`User role set for user ID: ${authUser.user.id}`);
         
         // In a real app, you would send an email with the temporary password
         console.log(`Created user account for ${contactRequest.name} with temp password: ${tempPassword}`);
