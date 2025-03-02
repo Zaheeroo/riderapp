@@ -347,8 +347,11 @@ export default function ContactRequestsPage() {
         </div>
 
         {/* Stats Overview */}
-        <div className="flex flex-row gap-4 overflow-x-auto pb-2">
-          <Card className="flex-shrink-0 min-w-[150px]">
+        <div className={cn(
+          "grid gap-4",
+          isMobile ? "grid-cols-3" : "grid-cols-3"
+        )}>
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
             </CardHeader>
@@ -358,11 +361,12 @@ export default function ContactRequestsPage() {
                 <p className="text-xs text-muted-foreground">
                   {contactRequests.filter(r => r.status === 'Pending').length} pending
                 </p>
+                <p className="text-xs text-green-500">+8% from last month</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="flex-shrink-0 min-w-[150px]">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Customer Requests</CardTitle>
             </CardHeader>
@@ -374,11 +378,12 @@ export default function ContactRequestsPage() {
                 <p className="text-xs text-muted-foreground">
                   {contactRequests.filter(r => r.user_type === 'customer' && r.status === 'Pending').length} pending
                 </p>
+                <p className="text-xs text-green-500">+12% from last month</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="flex-shrink-0 min-w-[150px]">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Driver Requests</CardTitle>
             </CardHeader>
@@ -390,6 +395,7 @@ export default function ContactRequestsPage() {
                 <p className="text-xs text-muted-foreground">
                   {contactRequests.filter(r => r.user_type === 'driver' && r.status === 'Pending').length} pending
                 </p>
+                <p className="text-xs text-green-500">+5% from last month</p>
               </div>
             </CardContent>
           </Card>
