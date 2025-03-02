@@ -10,6 +10,7 @@ interface AuthContextType {
   signUp: (data: any) => Promise<any>;
   signIn: (data: any) => Promise<any>;
   signOut: () => Promise<any>;
+  resetPassword: (email: string, redirectTo?: string) => Promise<any>;
 }
 
 interface AuthProviderProps {
@@ -177,10 +178,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const resetPassword = async (email: string, redirectTo?: string) => {
+    try {
+      console.log('Starting password reset process for:', email);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectTo || `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        console.error('Password reset error:', error);
+        throw error;
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Error during password reset:', error);
+      return { error };
+    }
+  };
+
   const value = {
     signUp,
     signIn,
     signOut,
+    resetPassword,
     user,
     loading
   };
