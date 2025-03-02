@@ -113,6 +113,11 @@ export default function AdminDashboard() {
   const [driversError, setDriversError] = useState('');
   const [customersError, setCustomersError] = useState('');
   
+  // Add state for contact requests
+  const [contactRequests, setContactRequests] = useState<any[]>([]);
+  const [loadingContactRequests, setLoadingContactRequests] = useState(false);
+  const [contactRequestsError, setContactRequestsError] = useState('');
+  
   // Driver form state
   const [driverName, setDriverName] = useState('');
   const [driverEmail, setDriverEmail] = useState('');
@@ -343,11 +348,41 @@ export default function AdminDashboard() {
     }
   };
   
+  // Add function to fetch contact requests
+  const fetchContactRequests = async () => {
+    setLoadingContactRequests(true);
+    setContactRequestsError('');
+    
+    try {
+      const response = await fetch('/api/admin/contact-requests');
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to fetch contact requests');
+      }
+      
+      const data = await response.json();
+      
+      if (data.contactRequests && Array.isArray(data.contactRequests)) {
+        setContactRequests(data.contactRequests);
+      } else {
+        console.warn('No contact requests found or invalid format:', data);
+        setContactRequests([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching contact requests:', error);
+      setContactRequestsError(error.message || 'Failed to load contact requests');
+    } finally {
+      setLoadingContactRequests(false);
+    }
+  };
+  
   // Fetch data on component mount
   useEffect(() => {
     if (user) {
       fetchDrivers();
       fetchCustomers();
+      fetchContactRequests();
     }
   }, [user]);
   
@@ -1256,6 +1291,77 @@ export default function AdminDashboard() {
     }
   };
 
+  // Replace the Contact Requests card implementation
+  const renderContactRequests = () => (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold">Contact Requests</CardTitle>
+            <CardDescription>Account requests from users</CardDescription>
+          </div>
+          <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+            <Link href="/admin/contact-requests">
+              View All
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <ScrollArea className="divide-y max-h-[200px]">
+          {loadingContactRequests ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              Loading contact requests...
+            </div>
+          ) : contactRequestsError ? (
+            <div className="p-4 text-center text-sm text-red-500">
+              {contactRequestsError}
+            </div>
+          ) : contactRequests.length > 0 ? (
+            contactRequests.slice(0, 3).map((request, index) => (
+              <div key={index} className="p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{request.name}</p>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <Mail className="mr-1 h-3 w-3" />
+                      {request.email}
+                    </div>
+                  </div>
+                  <div className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                    request.status === "Pending" 
+                      ? "bg-yellow-500/10 text-yellow-500"
+                      : request.status === "Approved"
+                        ? "bg-green-500/10 text-green-500"
+                        : "bg-red-500/10 text-red-500"
+                  )}>
+                    {request.status}
+                  </div>
+                </div>
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <User className="mr-1 h-3 w-3" />
+                  <span className="capitalize">{request.user_type}</span>
+                </div>
+                <Link 
+                  href="/admin/contact-requests"
+                  className="text-xs text-blue-500 hover:underline"
+                >
+                  View details
+                </Link>
+              </div>
+            ))
+          ) : (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              No pending contact requests
+            </div>
+          )}
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <DashboardLayout userType="admin">
       {/* Main Container with adaptive max width based on device */}
@@ -1315,28 +1421,21 @@ export default function AdminDashboard() {
                     return (
                       <Link 
                         key={chat.id} 
-                        href={`/admin/messages?chat=${chat.id}`}
-                        className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
+                        href={`/admin/messages/${chat.id}`}
+                        className="block p-4 hover:bg-muted/50"
                       >
-                        <Avatar>
-                          <AvatarImage src={otherParticipant?.avatar} />
-                          <AvatarFallback>{otherParticipant?.name[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <div>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage src={otherParticipant?.avatar} />
+                            <AvatarFallback>{otherParticipant?.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center justify-between">
                               <p className="font-medium">{otherParticipant?.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {otherParticipant?.type === "driver" ? "Driver" : "Customer"}
-                              </p>
+                              <span className="text-xs text-muted-foreground">{chat.lastMessageTime}</span>
                             </div>
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(lastMessage?.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
+                            <p className="text-xs text-muted-foreground line-clamp-1">{chat.lastMessage}</p>
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {lastMessage?.message}
-                          </p>
                         </div>
                       </Link>
                     );
@@ -1345,65 +1444,8 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            {/* Contact Requests */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg font-semibold">Contact Requests</CardTitle>
-                    <CardDescription>Account requests from users</CardDescription>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
-                    <Link href="/admin/contact-requests">
-                      View All
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="divide-y max-h-[200px]">
-                  {dummyAdminStats.contactRequests && dummyAdminStats.contactRequests.slice(0, 3).map((request, index) => (
-                    <div key={index} className="p-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{request.name}</p>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Mail className="mr-1 h-3 w-3" />
-                            {request.email}
-                          </div>
-                        </div>
-                        <div className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                          request.status === "Pending" 
-                            ? "bg-yellow-500/10 text-yellow-500"
-                            : request.status === "Approved"
-                              ? "bg-green-500/10 text-green-500"
-                              : "bg-red-500/10 text-red-500"
-                        )}>
-                          {request.status}
-                        </div>
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <User className="mr-1 h-3 w-3" />
-                        <span className="capitalize">{request.type}</span>
-                      </div>
-                      <Link 
-                        href="/admin/contact-requests"
-                        className="text-xs text-blue-500 hover:underline"
-                      >
-                        View details
-                      </Link>
-                    </div>
-                  ))}
-                  {(!dummyAdminStats.contactRequests || dummyAdminStats.contactRequests.length === 0) && (
-                    <div className="p-4 text-center text-sm text-muted-foreground">
-                      No pending contact requests
-                    </div>
-                  )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            {/* Contact Requests - Use the new function */}
+            {renderContactRequests()}
 
             {/* Rides Management Section */}
             {renderRidesManagement()}
@@ -1428,7 +1470,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Recent Communications */}
-            <div className="col-span-2">
+            <div className="col-span-1">
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -1448,19 +1490,15 @@ export default function AdminDashboard() {
                   <ScrollArea className="divide-y max-h-[300px]">
                     {recentChats.map((chat) => {
                       const otherParticipant = chat.participants.find(p => p.type !== "admin");
-                      const lastMessage = dummyCommunication.messages
-                        .filter(m => m.conversation_id === chat.id)
-                        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-
                       return (
                         <Link 
                           key={chat.id} 
-                          href={`/admin/messages?chat=${chat.id}`}
+                          href={`/admin/messages/${chat.id}`}
                           className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
                         >
                           <Avatar>
                             <AvatarImage src={otherParticipant?.avatar} />
-                            <AvatarFallback>{otherParticipant?.name[0]}</AvatarFallback>
+                            <AvatarFallback>{otherParticipant?.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
@@ -1471,11 +1509,11 @@ export default function AdminDashboard() {
                                 </p>
                               </div>
                               <span className="text-xs text-muted-foreground">
-                                {new Date(lastMessage?.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {chat.lastMessageTime}
                               </span>
                             </div>
                             <p className="text-sm text-muted-foreground truncate">
-                              {lastMessage?.message}
+                              {chat.lastMessage}
                             </p>
                           </div>
                         </Link>
@@ -1484,6 +1522,16 @@ export default function AdminDashboard() {
                   </ScrollArea>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Contact Requests - Use the new function */}
+            <div className="col-span-1">
+              {renderContactRequests()}
+            </div>
+
+            {/* Rides Management Section */}
+            <div className="col-span-2">
+              {renderRidesManagement()}
             </div>
           </div>
         )}
