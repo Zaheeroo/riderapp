@@ -349,7 +349,7 @@ export default function ContactRequestsPage() {
         {/* Stats Overview */}
         <div className={cn(
           "grid gap-4",
-          isMobile ? "grid-cols-3" : "grid-cols-3"
+          isMobile ? "grid-cols-1" : "grid-cols-3"
         )}>
           <Card>
             <CardHeader className="pb-2">
