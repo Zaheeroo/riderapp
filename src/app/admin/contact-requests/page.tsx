@@ -482,7 +482,7 @@ export default function ContactRequestsPage() {
                             "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
                             getStatusBadgeColor(request.status)
                           )}>
-                            {request.status}
+                            {request.status?.charAt(0).toUpperCase() + request.status?.slice(1).toLowerCase()}
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
@@ -541,7 +541,7 @@ export default function ContactRequestsPage() {
                                 "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
                                 getStatusBadgeColor(request.status)
                               )}>
-                                {request.status}
+                                {request.status?.charAt(0).toUpperCase() + request.status?.slice(1).toLowerCase()}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -615,7 +615,7 @@ export default function ContactRequestsPage() {
                   "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
                   getStatusBadgeColor(selectedRequest.status)
                 )}>
-                  {selectedRequest.status}
+                  {selectedRequest.status?.charAt(0).toUpperCase() + selectedRequest.status?.slice(1).toLowerCase()}
                 </div>
               </div>
               
