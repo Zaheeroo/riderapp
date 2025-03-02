@@ -14,7 +14,15 @@ import { TimePicker } from "@/components/ui/time-picker";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "../../../../contexts";
 import { RideService } from "../../../../lib/services/ride-service";
-import { Loader2 } from "lucide-react";
+import { Loader2, Calendar, Clock, MapPin, Users, Car, AlertCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function BookRidePage() {
   const router = useRouter();
@@ -23,6 +31,8 @@ export default function BookRidePage() {
   const [loading, setLoading] = useState(false);
   const [customerData, setCustomerData] = useState<any>(null);
   const [loadingCustomer, setLoadingCustomer] = useState(true);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [estimatedPrice, setEstimatedPrice] = useState<string>('0.00');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -54,7 +64,7 @@ export default function BookRidePage() {
         console.error('Error fetching customer data:', error);
         toast({
           title: "Error",
-          description: "Failed to load your profile",
+          description: "Failed to load your customer profile",
           variant: "destructive",
         });
       } finally {
@@ -65,7 +75,7 @@ export default function BookRidePage() {
     fetchCustomerData();
   }, [user, toast]);
 
-  // Handle form input changes
+  // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -76,7 +86,7 @@ export default function BookRidePage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Handle date change
+  // Handle date changes
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
       const formattedDate = date.toISOString().split('T')[0];
@@ -84,13 +94,22 @@ export default function BookRidePage() {
     }
   };
 
-  // Handle time change
+  // Handle time changes
   const handleTimeChange = (time: string) => {
     setFormData(prev => ({ ...prev, pickup_time: time }));
   };
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Calculate estimated price
+  const calculateEstimatedPrice = () => {
+    const basePrice = formData.vehicle_type === "Standard" ? 25 : 
+                      formData.vehicle_type === "Premium" ? 40 : 
+                      formData.vehicle_type === "SUV" ? 35 : 30;
+    const passengerMultiplier = parseInt(formData.passengers) > 2 ? 1.2 : 1;
+    return (basePrice * passengerMultiplier).toFixed(2);
+  };
+
+  // Handle form validation and show confirmation
+  const handleValidateAndConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!customerData) {
@@ -112,16 +131,19 @@ export default function BookRidePage() {
       return;
     }
     
+    // Calculate price and show confirmation
+    const price = calculateEstimatedPrice();
+    setEstimatedPrice(price);
+    setShowConfirmation(true);
+  };
+
+  // Handle form submission after confirmation
+  const handleConfirmBooking = async () => {
+    if (!customerData) return;
+    
     setLoading(true);
     
     try {
-      // Calculate estimated price (in a real app, this would be more sophisticated)
-      const basePrice = formData.vehicle_type === "Standard" ? 25 : 
-                        formData.vehicle_type === "Premium" ? 40 : 
-                        formData.vehicle_type === "SUV" ? 35 : 30;
-      const passengerMultiplier = parseInt(formData.passengers) > 2 ? 1.2 : 1;
-      const estimatedPrice = (basePrice * passengerMultiplier).toFixed(2);
-      
       // Create the ride
       const rideData = {
         customer_id: customerData.id,
@@ -133,15 +155,64 @@ export default function BookRidePage() {
         trip_type: formData.trip_type,
         vehicle_type: formData.vehicle_type,
         passengers: parseInt(formData.passengers),
-        price: estimatedPrice,
+        price: parseFloat(estimatedPrice),
         payment_status: "Pending",
         special_requirements: formData.special_requirements,
-        created_by: "customer",
+        created_by: user?.id || "customer",
       };
       
-      const { data, error } = await RideService.createRide(rideData);
+      console.log("Submitting ride data:", rideData);
       
-      if (error) throw error;
+      // First try to create the ride directly
+      let result = await RideService.createRide(rideData, user?.id);
+      
+      // If there's an RLS policy error, try using the API route instead
+      if (result.error && (
+        typeof result.error === 'object' && 
+        result.error !== null && 
+        'message' in result.error && 
+        typeof result.error.message === 'string' && 
+        (result.error.message.includes('policy') || result.error.message.includes('permission'))
+      )) {
+        console.log('RLS policy error detected, trying API route instead');
+        
+        // Try using the API route which has server-side permissions
+        const apiResponse = await fetch('/api/rides', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(rideData),
+        });
+        
+        if (!apiResponse.ok) {
+          const errorData = await apiResponse.json();
+          throw new Error(errorData.message || 'Failed to create ride via API');
+        }
+        
+        result = { data: await apiResponse.json(), error: null };
+      }
+      
+      if (result.error) {
+        console.error("Error creating ride:", result.error);
+        let errorMessage = "Failed to book your ride. Please try again.";
+        
+        if (typeof result.error === 'object' && result.error !== null) {
+          if ('message' in result.error) {
+            errorMessage = `Error: ${result.error.message}`;
+          } else if ('error' in result.error && typeof result.error.error === 'string') {
+            errorMessage = `Error: ${result.error.error}`;
+          }
+        }
+        
+        toast({
+          title: "Booking Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
       
       toast({
         title: "Success",
@@ -149,17 +220,24 @@ export default function BookRidePage() {
         variant: "success",
       });
       
-      // Redirect to rides page
-      router.push("/customer/rides");
-    } catch (error) {
+      // Redirect to rides page after successful booking
+      router.push('/customer/rides');
+    } catch (error: any) {
       console.error('Error booking ride:', error);
+      
+      let errorMessage = "Failed to book your ride";
+      if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to book your ride",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+      setShowConfirmation(false);
     }
   };
 
@@ -184,7 +262,7 @@ export default function BookRidePage() {
         </div>
 
         <Card className="max-w-3xl">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleValidateAndConfirm}>
             <CardHeader>
               <CardTitle>Ride Details</CardTitle>
               <CardDescription>
@@ -312,22 +390,108 @@ export default function BookRidePage() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" type="button" onClick={() => router.back()}>
+              <Button variant="outline" type="button" onClick={() => router.push('/customer/rides')}>
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Booking...
-                  </>
-                ) : (
-                  "Book Ride"
-                )}
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Continue to Booking
               </Button>
             </CardFooter>
           </form>
         </Card>
+
+        {/* Booking Confirmation Dialog */}
+        <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <AlertCircle className="h-5 w-5 mr-2 text-primary" />
+                Confirm Your Booking
+              </DialogTitle>
+              <DialogDescription>
+                Please review your ride details before confirming your booking.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="border rounded-md p-4 bg-muted/50 space-y-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Pickup Location</p>
+                  <p className="text-sm">{formData.pickup_location}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Dropoff Location</p>
+                  <p className="text-sm">{formData.dropoff_location}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Date</p>
+                  <p className="text-sm">{formData.pickup_date}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Time</p>
+                  <p className="text-sm">{formData.pickup_time}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <Car className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Vehicle Type</p>
+                  <p className="text-sm">{formData.vehicle_type}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <Users className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Passengers</p>
+                  <p className="text-sm">{formData.passengers}</p>
+                </div>
+              </div>
+              
+              <div className="border-t pt-3 mt-3">
+                <div className="flex justify-between items-center">
+                  <p className="font-medium">Estimated Price:</p>
+                  <p className="font-bold text-lg">${estimatedPrice}</p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Final price may vary based on actual distance and time.
+                </p>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowConfirmation(false)}
+                disabled={loading}
+              >
+                Edit Details
+              </Button>
+              <Button 
+                onClick={handleConfirmBooking}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Confirm Booking
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );

@@ -18,59 +18,80 @@ interface TimePickerProps {
 }
 
 export function TimePicker({ value, onChange }: TimePickerProps) {
-  const [hours, setHours] = React.useState<string>(value ? value.split(":")[0] : "")
-  const [minutes, setMinutes] = React.useState<string>(value ? value.split(":")[1] : "")
-  const [period, setPeriod] = React.useState<"AM" | "PM">(
-    value 
-      ? (parseInt(value.split(":")[0]) >= 12 ? "PM" : "AM") 
-      : "AM"
-  )
+  // Parse the initial value or use defaults
+  const parseTime = () => {
+    try {
+      if (value && value.includes(":")) {
+        const [hourStr, minuteStr] = value.split(":");
+        const hour = parseInt(hourStr);
+        
+        // Convert 24-hour to 12-hour format
+        const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        const period = hour >= 12 ? "PM" : "AM";
+        
+        return {
+          hour: hour12.toString(),
+          minute: minuteStr,
+          period
+        };
+      }
+    } catch (e) {
+      console.log("Error parsing time:", e);
+    }
+    
+    // Default values
+    return { hour: "12", minute: "00", period: "AM" };
+  };
+  
+  const initialTime = parseTime();
+  
+  const [hour, setHour] = React.useState(initialTime.hour);
+  const [minute, setMinute] = React.useState(initialTime.minute);
+  const [period, setPeriod] = React.useState<"AM" | "PM">(initialTime.period as "AM" | "PM");
 
   // Generate hours options (1-12)
-  const hoursOptions = Array.from({ length: 12 }, (_, i) => {
-    const hour = i + 1
-    return { value: hour.toString().padStart(2, "0"), label: hour.toString() }
-  })
+  const hours = [
+    "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
+  ];
 
   // Generate minutes options (00-55, increments of 5)
-  const minutesOptions = Array.from({ length: 12 }, (_, i) => {
-    const minute = i * 5
-    return { value: minute.toString().padStart(2, "0"), label: minute.toString().padStart(2, "0") }
-  })
+  const minutes = [
+    "00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"
+  ];
 
   // Update the parent component when time changes
-  React.useEffect(() => {
-    if (hours && minutes) {
-      let hour = parseInt(hours)
-      
-      // Convert to 24-hour format
-      if (period === "PM" && hour < 12) {
-        hour += 12
-      } else if (period === "AM" && hour === 12) {
-        hour = 0
-      }
-      
-      const formattedHour = hour.toString().padStart(2, "0")
-      const formattedTime = `${formattedHour}:${minutes}`
-      onChange(formattedTime)
+  const updateTime = () => {
+    let hourInt = parseInt(hour);
+    
+    // Convert to 24-hour format
+    if (period === "PM" && hourInt < 12) {
+      hourInt += 12;
+    } else if (period === "AM" && hourInt === 12) {
+      hourInt = 0;
     }
-  }, [hours, minutes, period, onChange])
+    
+    const formattedHour = hourInt.toString().padStart(2, "0");
+    const formattedTime = `${formattedHour}:${minute}`;
+    onChange(formattedTime);
+  };
 
-  // Initialize from value prop
-  React.useEffect(() => {
-    if (value) {
-      const [hourStr, minuteStr] = value.split(":")
-      const hour = parseInt(hourStr)
-      
-      // Convert 24-hour to 12-hour format
-      let hour12 = hour % 12
-      if (hour12 === 0) hour12 = 12
-      
-      setHours(hour12.toString().padStart(2, "0"))
-      setMinutes(minuteStr)
-      setPeriod(hour >= 12 ? "PM" : "AM")
-    }
-  }, [value])
+  // Handle hour change
+  const handleHourChange = (newHour: string) => {
+    setHour(newHour);
+    setTimeout(updateTime, 0);
+  };
+
+  // Handle minute change
+  const handleMinuteChange = (newMinute: string) => {
+    setMinute(newMinute);
+    setTimeout(updateTime, 0);
+  };
+
+  // Handle period change
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod as "AM" | "PM");
+    setTimeout(updateTime, 0);
+  };
 
   return (
     <Popover>
@@ -85,7 +106,7 @@ export function TimePicker({ value, onChange }: TimePickerProps) {
           <Clock className="mr-2 h-4 w-4" />
           {value ? (
             <span>
-              {hours}:{minutes} {period}
+              {hour}:{minute} {period}
             </span>
           ) : (
             <span>Pick a time</span>
@@ -97,16 +118,16 @@ export function TimePicker({ value, onChange }: TimePickerProps) {
           <div className="flex flex-col space-y-1">
             <span className="text-xs text-muted-foreground">Hour</span>
             <Select
-              value={hours}
-              onValueChange={(value) => setHours(value)}
+              value={hour}
+              onValueChange={handleHourChange}
             >
               <SelectTrigger className="w-[70px]">
                 <SelectValue placeholder="Hour" />
               </SelectTrigger>
               <SelectContent>
-                {hoursOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                {hours.map((h) => (
+                  <SelectItem key={h} value={h}>
+                    {h}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -115,16 +136,16 @@ export function TimePicker({ value, onChange }: TimePickerProps) {
           <div className="flex flex-col space-y-1">
             <span className="text-xs text-muted-foreground">Minute</span>
             <Select
-              value={minutes}
-              onValueChange={(value) => setMinutes(value)}
+              value={minute}
+              onValueChange={handleMinuteChange}
             >
               <SelectTrigger className="w-[70px]">
                 <SelectValue placeholder="Min" />
               </SelectTrigger>
               <SelectContent>
-                {minutesOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                {minutes.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -134,7 +155,7 @@ export function TimePicker({ value, onChange }: TimePickerProps) {
             <span className="text-xs text-muted-foreground">Period</span>
             <Select
               value={period}
-              onValueChange={(value) => setPeriod(value as "AM" | "PM")}
+              onValueChange={handlePeriodChange}
             >
               <SelectTrigger className="w-[70px]">
                 <SelectValue placeholder="AM/PM" />

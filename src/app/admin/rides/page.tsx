@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { dummyCustomersExtended, dummyDrivers, dummyBookingData, dummyAdminStats } from "@/data/dummy";
-import { Car, Clock, MapPin, Plus, Search, Users, DollarSign, Calendar, Loader2 } from "lucide-react";
+import { Car, Clock, MapPin, Plus, Search, Users, DollarSign, Calendar, Loader2, FolderX } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -66,7 +66,13 @@ export default function AdminRidesPage() {
       try {
         // Fetch rides
         const { data: ridesData, error: ridesError } = await RideService.getAllRides();
-        if (ridesError) throw ridesError;
+        
+        if (ridesError) {
+          console.error('Error fetching rides:', ridesError);
+          throw ridesError;
+        }
+        
+        console.log('Rides data fetched:', ridesData);
         setRides(ridesData || []);
         
         // Calculate stats
@@ -91,16 +97,21 @@ export default function AdminRidesPage() {
         console.error('Error fetching data:', error);
         toast({
           title: "Error",
-          description: "Failed to load rides data",
+          description: "Failed to load rides data. Please check your connection and try again.",
           variant: "destructive",
         });
+        
+        // Set empty rides array to show "No rides found" message
+        setRides([]);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchData();
-  }, [toast]);
+    if (user) {
+      fetchData();
+    }
+  }, [user, toast]);
   
   // Handle form input changes
   const handleInputChange = (field: string, value: any) => {
@@ -559,8 +570,13 @@ export default function AdminRidesPage() {
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               ) : rides.length === 0 ? (
-                <div className="flex justify-center items-center h-40 text-muted-foreground">
-                  No rides found
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <FolderX className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">No rides found</h3>
+                  <p className="text-sm text-muted-foreground mt-1 mb-4">
+                    There are no rides in the system yet. Create your first ride to get started.
+                  </p>
+                  <Button onClick={() => setShowAddRideForm(true)}>Add New Ride</Button>
                 </div>
               ) : isMobile ? (
                 // Mobile view - Card layout
