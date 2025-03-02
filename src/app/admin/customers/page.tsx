@@ -382,7 +382,7 @@ export default function CustomersPage() {
           "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
             </CardHeader>
@@ -397,7 +397,7 @@ export default function CustomersPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Active Users</CardTitle>
             </CardHeader>
@@ -414,7 +414,7 @@ export default function CustomersPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
             </CardHeader>
@@ -431,7 +431,7 @@ export default function CustomersPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
             </CardHeader>

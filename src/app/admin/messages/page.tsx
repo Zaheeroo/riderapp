@@ -4,6 +4,9 @@ import { useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { ConversationsList } from "@/components/ui/conversations-list";
 import { Chat } from "@/components/ui/chat";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 // In a real app, this would come from authentication
 const DUMMY_USER_ID = "admin-1";
@@ -12,6 +15,7 @@ export default function AdminMessagesPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | undefined
   >();
+  const { isMobile } = useDeviceType();
 
   return (
     <DashboardLayout userType="admin">
@@ -39,6 +43,24 @@ export default function AdminMessagesPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Stats Overview */}
+        <div className={cn(
+          "grid gap-4 mb-8",
+          isMobile ? "grid-cols-2" : "grid-cols-3"
+        )}>
+          <Card className="flex-shrink-0">
+            {/* ... existing code ... */}
+          </Card>
+
+          <Card className="flex-shrink-0">
+            {/* ... existing code ... */}
+          </Card>
+
+          <Card className="flex-shrink-0">
+            {/* ... existing code ... */}
+          </Card>
         </div>
       </div>
     </DashboardLayout>

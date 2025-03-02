@@ -418,7 +418,7 @@ export default function DriversPage() {
           "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Drivers</CardTitle>
             </CardHeader>
@@ -433,7 +433,7 @@ export default function DriversPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
             </CardHeader>
@@ -450,7 +450,7 @@ export default function DriversPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
             </CardHeader>
@@ -467,7 +467,7 @@ export default function DriversPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
             </CardHeader>

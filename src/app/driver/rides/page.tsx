@@ -46,7 +46,7 @@ export default function DriverRidesPage() {
           "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Today's Rides</CardTitle>
             </CardHeader>
@@ -63,7 +63,7 @@ export default function DriverRidesPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Distance</CardTitle>
             </CardHeader>
@@ -78,7 +78,7 @@ export default function DriverRidesPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Today's Earnings</CardTitle>
             </CardHeader>
@@ -93,7 +93,7 @@ export default function DriverRidesPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Rating</CardTitle>
             </CardHeader>

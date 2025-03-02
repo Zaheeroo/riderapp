@@ -348,8 +348,8 @@ export default function ContactRequestsPage() {
 
         {/* Stats Overview */}
         <div className={cn(
-          "grid gap-4",
-          isMobile ? "grid-cols-1" : "grid-cols-3"
+          "grid gap-4 mb-8",
+          isMobile ? "grid-cols-2" : "grid-cols-3"
         )}>
           <Card className="flex-shrink-0">
             <CardHeader className="pb-2">

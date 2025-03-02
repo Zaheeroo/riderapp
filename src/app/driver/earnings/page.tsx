@@ -37,7 +37,7 @@ export default function DriverEarningsPage() {
           "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Today's Earnings</CardTitle>
             </CardHeader>
@@ -52,7 +52,7 @@ export default function DriverEarningsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">This Week</CardTitle>
             </CardHeader>
@@ -67,7 +67,7 @@ export default function DriverEarningsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">This Month</CardTitle>
             </CardHeader>
@@ -82,7 +82,7 @@ export default function DriverEarningsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Rating</CardTitle>
             </CardHeader>

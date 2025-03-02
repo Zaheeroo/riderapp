@@ -523,7 +523,7 @@ export const dummyCustomerRides = {
         name: "Carlos M.",
         phone: "+506 8888-8888",
         rating: 4.8,
-        avatar: "/avatars/driver1.jpg",
+        avatar: "/vercel.svg",
         vehicle: {
           model: "Toyota Camry",
           color: "Silver",
@@ -554,7 +554,7 @@ export const dummyCustomerRides = {
         name: "Maria R.",
         phone: "+506 7777-7777",
         rating: 4.9,
-        avatar: "/avatars/driver2.jpg",
+        avatar: "/vercel.svg",
         vehicle: {
           model: "Honda CR-V",
           color: "White",
@@ -587,7 +587,7 @@ export const dummyCustomerRides = {
         name: "Juan D.",
         phone: "+506 6666-6666",
         rating: 4.7,
-        avatar: "/avatars/driver3.jpg",
+        avatar: "/vercel.svg",
         vehicle: {
           model: "Toyota Fortuner",
           color: "Black",
@@ -619,7 +619,7 @@ export const dummyCustomerRides = {
         name: "Ana L.",
         phone: "+506 5555-5555",
         rating: 4.9,
-        avatar: "/avatars/driver4.jpg",
+        avatar: "/vercel.svg",
         vehicle: {
           model: "Hyundai Tucson",
           color: "Blue",
@@ -894,13 +894,13 @@ export const dummyCommunication = {
           id: "customer1",
           name: "John Smith",
           type: "customer",
-          avatar: "/avatars/customer1.jpg"
+          avatar: "/vercel.svg"
         },
         {
           id: "driver1",
           name: "Carlos M.",
           type: "driver",
-          avatar: "/avatars/driver1.jpg"
+          avatar: "/vercel.svg"
         }
       ],
       status: "active",
@@ -915,13 +915,13 @@ export const dummyCommunication = {
           id: "admin1",
           name: "Admin",
           type: "admin",
-          avatar: "/avatars/admin.jpg"
+          avatar: "/vercel.svg"
         },
         {
           id: "driver1",
           name: "Carlos M.",
           type: "driver",
-          avatar: "/avatars/driver1.jpg"
+          avatar: "/vercel.svg"
         }
       ],
       status: "active",

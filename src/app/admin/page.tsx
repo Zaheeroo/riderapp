@@ -7,7 +7,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { dummyAdminStats, dummyCommunication } from "@/data/dummy";
-import { Car, MapPin, Plus, Clock, Phone, Star, DollarSign, MessageSquare, ArrowRight, Users, Mail, Search, Pencil, Eye, Trash, AlertCircle } from "lucide-react";
+import { Car, MapPin, Plus, Clock, Phone, Star, DollarSign, MessageSquare, ArrowRight, Users, Mail, Search, Pencil, Eye, Trash, AlertCircle, User } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -970,7 +970,7 @@ export default function AdminDashboard() {
       "grid gap-4",
       isMobile ? "grid-cols-2" : "grid-cols-4"
     )}>
-      <Card>
+      <Card className="flex-shrink-0">
         <CardHeader>
           <CardTitle className="text-sm font-medium">Total Drivers</CardTitle>
         </CardHeader>
@@ -984,7 +984,7 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="flex-shrink-0">
         <CardHeader>
           <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
         </CardHeader>
@@ -998,7 +998,7 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="flex-shrink-0">
         <CardHeader>
           <CardTitle className="text-sm font-medium">Active Chats</CardTitle>
         </CardHeader>
@@ -1012,7 +1012,7 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
-      <Card>
+      <Card className="flex-shrink-0">
         <CardHeader>
           <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
         </CardHeader>

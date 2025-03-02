@@ -130,7 +130,7 @@ export default function CustomerDashboard() {
           "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
             </CardHeader>
@@ -145,7 +145,7 @@ export default function CustomerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Rating</CardTitle>
             </CardHeader>
@@ -160,7 +160,7 @@ export default function CustomerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Messages</CardTitle>
             </CardHeader>
@@ -175,7 +175,7 @@ export default function CustomerDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Destinations</CardTitle>
             </CardHeader>

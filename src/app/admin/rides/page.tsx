@@ -46,10 +46,10 @@ export default function AdminRidesPage() {
 
         {/* Stats Overview */}
         <div className={cn(
-          "grid gap-4",
+          "grid gap-4 mb-8",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Today's Rides</CardTitle>
             </CardHeader>
@@ -64,7 +64,7 @@ export default function AdminRidesPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Weekly Rides</CardTitle>
             </CardHeader>
@@ -79,7 +79,7 @@ export default function AdminRidesPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
             </CardHeader>
@@ -94,7 +94,7 @@ export default function AdminRidesPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
             </CardHeader>
