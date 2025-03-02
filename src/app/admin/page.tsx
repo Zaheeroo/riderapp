@@ -1331,13 +1331,13 @@ export default function AdminDashboard() {
                   </div>
                   <div className={cn(
                     "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                    request.status === "Pending" 
+                    request.status?.toLowerCase() === "pending" 
                       ? "bg-yellow-500/10 text-yellow-500"
-                      : request.status === "Approved"
+                      : request.status?.toLowerCase() === "approved"
                         ? "bg-green-500/10 text-green-500"
                         : "bg-red-500/10 text-red-500"
                   )}>
-                    {request.status}
+                    {request.status?.charAt(0).toUpperCase() + request.status?.slice(1).toLowerCase()}
                   </div>
                 </div>
                 <div className="flex items-center text-xs text-muted-foreground">
