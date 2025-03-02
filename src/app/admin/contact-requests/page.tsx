@@ -349,9 +349,9 @@ export default function ContactRequestsPage() {
         {/* Stats Overview */}
         <div className={cn(
           "grid gap-4",
-          isMobile ? "grid-cols-3" : "grid-cols-3"
+          isMobile ? "grid-cols-1" : "grid-cols-3"
         )}>
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
             </CardHeader>
@@ -366,7 +366,7 @@ export default function ContactRequestsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Customer Requests</CardTitle>
             </CardHeader>
@@ -383,7 +383,7 @@ export default function ContactRequestsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Driver Requests</CardTitle>
             </CardHeader>
