@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,8 +18,16 @@ export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
   const { toast } = useToast();
 
+  // Add a useEffect to log when the component mounts
+  useEffect(() => {
+    console.log('ForgotPasswordPage component mounted');
+    console.log('resetPassword function available:', !!resetPassword);
+  }, [resetPassword]);
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('Form submitted with email:', email);
     
     setLoading(true);
     setError('');
@@ -35,6 +43,8 @@ export default function ForgotPasswordPage() {
       
       // Send password reset email using the AuthContext
       const { error: resetError } = await resetPassword(email);
+      
+      console.log('Password reset response received, error:', !!resetError);
       
       if (resetError) {
         console.error('Password reset error:', resetError);
