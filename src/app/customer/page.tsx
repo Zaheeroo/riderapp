@@ -439,7 +439,7 @@ export default function CustomerDashboard() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium">{ride.driver?.name || 'Driver Pending'}</p>
+                                <p className="font-medium">{ride.driver?.name || 'Driver Scheduled'}</p>
                                 <div className="flex items-center text-sm text-muted-foreground">
                                   <Car className="mr-1 h-4 w-4" />
                                   <span>{ride.vehicle_type}</span>
