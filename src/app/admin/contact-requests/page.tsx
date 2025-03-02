@@ -452,7 +452,10 @@ export default function ContactRequestsPage() {
                 <p>No contact requests found.</p>
               </div>
             ) : (
-              <ScrollArea className="h-[600px] overflow-auto">
+              <ScrollArea className={cn(
+                "overflow-auto",
+                isMobile ? "h-[400px]" : "h-[600px]"
+              )}>
                 {isMobile ? (
                   // Mobile view - Card layout
                   <div className="divide-y">
