@@ -329,9 +329,7 @@ export default function AdminRidesPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className={cn(
-              isMobile ? "max-h-[300px]" : "max-h-[400px]"
-            )}>
+            <ScrollArea className="h-[600px] overflow-auto">
               {isMobile ? (
                 // Mobile view - Card layout
                 <div className="divide-y">
