@@ -135,13 +135,15 @@ export default function CustomerDashboard() {
               <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{customer.pastRides.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Completed rides
-                </p>
-                <p className="text-xs text-green-500">+{customer.upcomingRides.length} scheduled</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{customer.pastRides.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Completed rides
+                  </p>
+                  <p className="text-xs text-green-500">+{customer.upcomingRides.length} scheduled</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -150,13 +152,15 @@ export default function CustomerDashboard() {
               <CardTitle className="text-sm font-medium">Rating</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">4.9</div>
-                <p className="text-xs text-muted-foreground">
-                  Based on {customer.pastRides.length} rides
-                </p>
-                <p className="text-xs text-green-500">Top rated customer</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">4.9</div>
+                  <p className="text-xs text-muted-foreground">
+                    Based on {customer.pastRides.length} rides
+                  </p>
+                  <p className="text-xs text-green-500">Top rated customer</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -165,13 +169,15 @@ export default function CustomerDashboard() {
               <CardTitle className="text-sm font-medium">Messages</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{recentChats.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Active conversations
-                </p>
-                <p className="text-xs text-green-500">2 new today</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{recentChats.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Active conversations
+                  </p>
+                  <p className="text-xs text-green-500">2 new today</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -180,13 +186,15 @@ export default function CustomerDashboard() {
               <CardTitle className="text-sm font-medium">Destinations</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">
-                  Places visited
-                </p>
-                <p className="text-xs text-green-500">+3 this month</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">12</div>
+                  <p className="text-xs text-muted-foreground">
+                    Places visited
+                  </p>
+                  <p className="text-xs text-green-500">+3 this month</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>

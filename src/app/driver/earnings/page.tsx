@@ -42,13 +42,15 @@ export default function DriverEarningsPage() {
               <CardTitle className="text-sm font-medium">Today's Earnings</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">${dummyDriverEarnings.summary.today.total}</div>
-                <p className="text-xs text-muted-foreground">
-                  {dummyDriverEarnings.summary.today.rides} rides
-                </p>
-                <p className="text-xs text-green-500">+${dummyDriverEarnings.summary.today.tips} tips</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">${dummyDriverEarnings.summary.today.total}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {dummyDriverEarnings.summary.today.rides} rides
+                  </p>
+                  <p className="text-xs text-green-500">+${dummyDriverEarnings.summary.today.tips} tips</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -57,13 +59,15 @@ export default function DriverEarningsPage() {
               <CardTitle className="text-sm font-medium">This Week</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">${dummyDriverEarnings.summary.week.total}</div>
-                <p className="text-xs text-muted-foreground">
-                  {dummyDriverEarnings.summary.week.rides} rides
-                </p>
-                <p className="text-xs text-green-500">+${dummyDriverEarnings.summary.week.tips} tips</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">${dummyDriverEarnings.summary.week.total}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {dummyDriverEarnings.summary.week.rides} rides
+                  </p>
+                  <p className="text-xs text-green-500">+${dummyDriverEarnings.summary.week.tips} tips</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -72,13 +76,15 @@ export default function DriverEarningsPage() {
               <CardTitle className="text-sm font-medium">This Month</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">${dummyDriverEarnings.summary.month.total}</div>
-                <p className="text-xs text-muted-foreground">
-                  {dummyDriverEarnings.summary.month.rides} rides
-                </p>
-                <p className="text-xs text-green-500">+${dummyDriverEarnings.summary.month.tips} tips</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">${dummyDriverEarnings.summary.month.total}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {dummyDriverEarnings.summary.month.rides} rides
+                  </p>
+                  <p className="text-xs text-green-500">+${dummyDriverEarnings.summary.month.tips} tips</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 

@@ -139,13 +139,15 @@ export default function DriverDashboard() {
               <CardTitle className="text-sm font-medium">Today's Earnings</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">${driver.earnings.today}</div>
-                <p className="text-xs text-muted-foreground">
-                  {driver.todayRides.length} rides today
-                </p>
-                <p className="text-xs text-green-500">+${driver.earnings.today * 0.1} tips</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">${driver.earnings.today}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {driver.todayRides.length} rides today
+                  </p>
+                  <p className="text-xs text-green-500">+${driver.earnings.today * 0.1} tips</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -154,13 +156,15 @@ export default function DriverDashboard() {
               <CardTitle className="text-sm font-medium">Rating</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{driver.rating}</div>
-                <p className="text-xs text-muted-foreground">
-                  Last {driver.totalRides} rides
-                </p>
-                <p className="text-xs text-green-500">+0.2 this month</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{driver.rating}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Last {driver.totalRides} rides
+                  </p>
+                  <p className="text-xs text-green-500">+0.2 this month</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -169,13 +173,15 @@ export default function DriverDashboard() {
               <CardTitle className="text-sm font-medium">Messages</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{recentChats.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Active conversations
-                </p>
-                <p className="text-xs text-green-500">2 new today</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{recentChats.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Active conversations
+                  </p>
+                  <p className="text-xs text-green-500">2 new today</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -184,13 +190,15 @@ export default function DriverDashboard() {
               <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{driver.totalRides}</div>
-                <p className="text-xs text-muted-foreground">
-                  All time rides
-                </p>
-                <p className="text-xs text-green-500">+{driver.todayRides.length} today</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{driver.totalRides}</div>
+                  <p className="text-xs text-muted-foreground">
+                    All time rides
+                  </p>
+                  <p className="text-xs text-green-500">+{driver.todayRides.length} today</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>

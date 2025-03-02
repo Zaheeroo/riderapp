@@ -975,13 +975,15 @@ export default function AdminDashboard() {
           <CardTitle className="text-sm font-medium">Total Drivers</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col">
-            <div className="text-2xl font-bold">{dummyAdminStats.overview.totalDrivers}</div>
-            <p className="text-xs text-muted-foreground">
-              {dummyAdminStats.overview.activeDrivers} active drivers
-            </p>
-            <p className="text-xs text-green-500">+{dummyAdminStats.overview.driverPercentageChange}% from last month</p>
-          </div>
+          <ScrollArea className="h-[100px]">
+            <div className="flex flex-col">
+              <div className="text-2xl font-bold">{dummyAdminStats.overview.totalDrivers}</div>
+              <p className="text-xs text-muted-foreground">
+                {dummyAdminStats.overview.activeDrivers} active drivers
+              </p>
+              <p className="text-xs text-green-500">+{dummyAdminStats.overview.driverPercentageChange}% from last month</p>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
       <Card className="flex-shrink-0">
@@ -989,13 +991,15 @@ export default function AdminDashboard() {
           <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col">
-            <div className="text-2xl font-bold">{dummyAdminStats.overview.totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">
-              {dummyAdminStats.overview.activeCustomers} active this month
-            </p>
-            <p className="text-xs text-green-500">+{dummyAdminStats.overview.customerPercentageChange}% from last month</p>
-          </div>
+          <ScrollArea className="h-[100px]">
+            <div className="flex flex-col">
+              <div className="text-2xl font-bold">{dummyAdminStats.overview.totalCustomers}</div>
+              <p className="text-xs text-muted-foreground">
+                {dummyAdminStats.overview.activeCustomers} active this month
+              </p>
+              <p className="text-xs text-green-500">+{dummyAdminStats.overview.customerPercentageChange}% from last month</p>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
       <Card className="flex-shrink-0">
@@ -1003,13 +1007,15 @@ export default function AdminDashboard() {
           <CardTitle className="text-sm font-medium">Active Chats</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col">
-            <div className="text-2xl font-bold">{dummyAdminStats.overview.activeChats}</div>
-            <p className="text-xs text-muted-foreground">
-              {dummyAdminStats.overview.attentionNeeded} require attention
-            </p>
-            <p className="text-xs text-green-500">+{dummyAdminStats.overview.chatPercentageChange}% from last week</p>
-          </div>
+          <ScrollArea className="h-[100px]">
+            <div className="flex flex-col">
+              <div className="text-2xl font-bold">{dummyAdminStats.overview.activeChats}</div>
+              <p className="text-xs text-muted-foreground">
+                {dummyAdminStats.overview.attentionNeeded} require attention
+              </p>
+              <p className="text-xs text-green-500">+{dummyAdminStats.overview.chatPercentageChange}% from last week</p>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
       <Card className="flex-shrink-0">
@@ -1017,13 +1023,15 @@ export default function AdminDashboard() {
           <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col">
-            <div className="text-2xl font-bold">${dummyAdminStats.earnings.month}</div>
-            <p className="text-xs text-muted-foreground">
-              +${dummyAdminStats.earnings.monthChange} this month
-            </p>
-            <p className="text-xs text-green-500">+{dummyAdminStats.earnings.percentageChange}% from last month</p>
-          </div>
+          <ScrollArea className="h-[100px]">
+            <div className="flex flex-col">
+              <div className="text-2xl font-bold">${dummyAdminStats.earnings.month}</div>
+              <p className="text-xs text-muted-foreground">
+                +${dummyAdminStats.earnings.monthChange} this month
+              </p>
+              <p className="text-xs text-green-500">+{dummyAdminStats.earnings.percentageChange}% from last month</p>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
     </div>

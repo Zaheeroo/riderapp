@@ -51,15 +51,15 @@ export default function DriverRidesPage() {
               <CardTitle className="text-sm font-medium">Today's Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">
-                  {dummyDriverRides.upcomingRides.filter(r => r.date === new Date().toLocaleDateString()).length}
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{dummyDriverRides.upcomingRides.filter(r => r.date === new Date().toLocaleDateString()).length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {dummyDriverRides.upcomingRides.filter(r => r.status === "Completed").length} completed
+                  </p>
+                  <p className="text-xs text-green-500">+2 from yesterday</p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {dummyDriverRides.upcomingRides.filter(r => r.status === "Completed").length} completed
-                </p>
-                <p className="text-xs text-green-500">+2 from yesterday</p>
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -68,13 +68,15 @@ export default function DriverRidesPage() {
               <CardTitle className="text-sm font-medium">Total Distance</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">284 km</div>
-                <p className="text-xs text-muted-foreground">
-                  42 km today
-                </p>
-                <p className="text-xs text-green-500">+15% this week</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">284 km</div>
+                  <p className="text-xs text-muted-foreground">
+                    42 km today
+                  </p>
+                  <p className="text-xs text-green-500">+15% this week</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -83,13 +85,15 @@ export default function DriverRidesPage() {
               <CardTitle className="text-sm font-medium">Today's Earnings</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">$245</div>
-                <p className="text-xs text-muted-foreground">
-                  $35 per ride avg
-                </p>
-                <p className="text-xs text-green-500">+12% from yesterday</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">$245</div>
+                  <p className="text-xs text-muted-foreground">
+                    $35 per ride avg
+                  </p>
+                  <p className="text-xs text-green-500">+12% from yesterday</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -98,13 +102,15 @@ export default function DriverRidesPage() {
               <CardTitle className="text-sm font-medium">Rating</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">4.9</div>
-                <p className="text-xs text-muted-foreground">
-                  Last 30 days
-                </p>
-                <p className="text-xs text-green-500">+0.2 this month</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">4.9</div>
+                  <p className="text-xs text-muted-foreground">
+                    Last 30 days
+                  </p>
+                  <p className="text-xs text-green-500">+0.2 this month</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>

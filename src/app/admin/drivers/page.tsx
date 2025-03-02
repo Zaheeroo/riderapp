@@ -423,13 +423,15 @@ export default function DriversPage() {
               <CardTitle className="text-sm font-medium">Total Drivers</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{drivers.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {drivers.filter(d => d.status === "Active").length} active drivers
-                </p>
-                <p className="text-xs text-green-500">+5% from last month</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{drivers.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {drivers.filter(d => d.status === "Active").length} active drivers
+                  </p>
+                  <p className="text-xs text-green-500">+5% from last month</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -438,15 +440,17 @@ export default function DriversPage() {
               <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">
-                  {drivers.filter(d => d.status === "Active").length}
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">
+                    {drivers.filter(d => d.status === "Active").length}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {drivers.length > 0 ? ((drivers.filter(d => d.status === "Active").length / drivers.length) * 100).toFixed(0) : 0}% of total
+                  </p>
+                  <p className="text-xs text-green-500">+3% this week</p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {drivers.length > 0 ? ((drivers.filter(d => d.status === "Active").length / drivers.length) * 100).toFixed(0) : 0}% of total
-                </p>
-                <p className="text-xs text-green-500">+3% this week</p>
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -455,15 +459,17 @@ export default function DriversPage() {
               <CardTitle className="text-sm font-medium">Total Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">
-                  {drivers.reduce((acc, curr) => acc + curr.total_rides, 0)}
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">
+                    {drivers.reduce((acc, curr) => acc + curr.total_rides, 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {drivers.length > 0 ? (drivers.reduce((acc, curr) => acc + curr.total_rides, 0) / drivers.length).toFixed(1) : 0} rides per driver
+                  </p>
+                  <p className="text-xs text-green-500">+12% this month</p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {drivers.length > 0 ? (drivers.reduce((acc, curr) => acc + curr.total_rides, 0) / drivers.length).toFixed(1) : 0} rides per driver
-                </p>
-                <p className="text-xs text-green-500">+12% this month</p>
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -472,15 +478,17 @@ export default function DriversPage() {
               <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">
-                  {drivers.length > 0 ? (drivers.reduce((acc, curr) => acc + curr.rating, 0) / drivers.length).toFixed(1) : 0}
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">
+                    {drivers.length > 0 ? (drivers.reduce((acc, curr) => acc + curr.rating, 0) / drivers.length).toFixed(1) : 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Based on {drivers.reduce((acc, curr) => acc + curr.total_rides, 0)} rides
+                  </p>
+                  <p className="text-xs text-green-500">+0.3 from last month</p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Based on {drivers.reduce((acc, curr) => acc + curr.total_rides, 0)} rides
-                </p>
-                <p className="text-xs text-green-500">+0.3 from last month</p>
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>

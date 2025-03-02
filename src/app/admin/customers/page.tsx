@@ -387,13 +387,15 @@ export default function CustomersPage() {
               <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{customers.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {customers.filter(c => c.status === "Active").length} active customers
-                </p>
-                <p className="text-xs text-green-500">+12% from last month</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{customers.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {customers.filter(c => c.status === "Active").length} active customers
+                  </p>
+                  <p className="text-xs text-green-500">+8% from last month</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -436,15 +438,17 @@ export default function CustomersPage() {
               <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">
-                  {(customers.reduce((acc, curr) => acc + curr.rating, 0) / customers.length).toFixed(1)}
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">
+                    {(customers.reduce((acc, customer) => acc + customer.rating, 0) / customers.length).toFixed(1)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Based on {customers.reduce((acc, customer) => acc + customer.total_rides, 0)} rides
+                  </p>
+                  <p className="text-xs text-green-500">+0.2 from last month</p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Based on {customers.reduce((acc, curr) => acc + curr.total_rides, 0)} rides
-                </p>
-                <p className="text-xs text-green-500">+0.2 from last month</p>
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>

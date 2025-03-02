@@ -54,13 +54,15 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Today's Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{dummyAdminStats.recentRides?.length || 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  {dummyAdminStats.recentRides?.filter(r => r.status === "Completed").length || 0} completed
-                </p>
-                <p className="text-xs text-green-500">+8% from yesterday</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{dummyAdminStats.recentRides?.length || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {dummyAdminStats.recentRides?.filter(r => r.status === "Completed").length || 0} completed
+                  </p>
+                  <p className="text-xs text-green-500">+15% from yesterday</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -69,13 +71,15 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Weekly Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">156</div>
-                <p className="text-xs text-muted-foreground">
-                  22 rides per day avg
-                </p>
-                <p className="text-xs text-green-500">+12% from last week</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">156</div>
+                  <p className="text-xs text-muted-foreground">
+                    22 rides per day avg
+                  </p>
+                  <p className="text-xs text-green-500">+8% this week</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -84,13 +88,15 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">$2,450</div>
-                <p className="text-xs text-muted-foreground">
-                  $122 per ride avg
-                </p>
-                <p className="text-xs text-green-500">+15% from yesterday</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">${dummyAdminStats.earnings?.month || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    $122 per ride avg
+                  </p>
+                  <p className="text-xs text-green-500">+12% from yesterday</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
@@ -99,13 +105,15 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{dummyDrivers.filter(d => d.status === "Active").length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {Math.round(dummyAdminStats.recentRides?.length / dummyDrivers.filter(d => d.status === "Active").length)} rides per driver
-                </p>
-                <p className="text-xs text-green-500">+2 from yesterday</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{dummyDrivers.filter(d => d.status === "Active").length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {Math.round(dummyAdminStats.recentRides?.length / dummyDrivers.filter(d => d.status === "Active").length)} rides per driver
+                  </p>
+                  <p className="text-xs text-green-500">+2 from yesterday</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>

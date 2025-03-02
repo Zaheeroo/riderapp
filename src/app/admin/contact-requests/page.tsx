@@ -356,47 +356,68 @@ export default function ContactRequestsPage() {
               <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{contactRequests.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {contactRequests.filter(r => r.status === 'Pending').length} pending
-                </p>
-                <p className="text-xs text-green-500">+8% from last month</p>
-              </div>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{contactRequests.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {contactRequests.filter(req => req.status === "New").length} new requests
+                  </p>
+                  <p className="text-xs text-green-500">+5% from last month</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
           <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Customer Requests</CardTitle>
+              <CardTitle className="text-sm font-medium">Response Rate</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">
-                  {contactRequests.filter(r => r.user_type === 'customer').length}
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">
+                    {Math.round((contactRequests.filter(req => req.status === "Responded").length / contactRequests.length) * 100)}%
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {contactRequests.filter(req => req.status === "Responded").length} responded
+                  </p>
+                  <p className="text-xs text-green-500">+2% from last week</p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {contactRequests.filter(r => r.user_type === 'customer' && r.status === 'Pending').length} pending
-                </p>
-                <p className="text-xs text-green-500">+12% from last month</p>
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
           <Card className="flex-shrink-0">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Driver Requests</CardTitle>
+              <CardTitle className="text-sm font-medium">Average Response Time</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">
-                  {contactRequests.filter(r => r.user_type === 'driver').length}
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">4.5 hrs</div>
+                  <p className="text-xs text-muted-foreground">
+                    For the last 30 days
+                  </p>
+                  <p className="text-xs text-green-500">-15% from last month</p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {contactRequests.filter(r => r.user_type === 'driver' && r.status === 'Pending').length} pending
-                </p>
-                <p className="text-xs text-green-500">+5% from last month</p>
-              </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          <Card className="flex-shrink-0">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">32%</div>
+                  <p className="text-xs text-muted-foreground">
+                    Requests to customers
+                  </p>
+                  <p className="text-xs text-green-500">+5% from last month</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
