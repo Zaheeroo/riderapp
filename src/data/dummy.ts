@@ -181,6 +181,48 @@ export const dummyAdminStats = {
     monthChange: 12234,
     percentageChange: 10
   },
+  contactRequests: [
+    {
+      id: "req-001",
+      name: "John Smith",
+      email: "john@example.com",
+      phone: "+1 234-567-8900",
+      type: "customer",
+      message: "I'm planning a trip to Costa Rica next month and would like to use your service.",
+      status: "Pending",
+      date: "2023-11-15"
+    },
+    {
+      id: "req-002",
+      name: "Maria Rodriguez",
+      email: "maria@example.com",
+      phone: "+506 8888-2222",
+      type: "driver",
+      message: "I have 5 years of experience as a driver and would like to join your platform.",
+      status: "Approved",
+      date: "2023-11-14"
+    },
+    {
+      id: "req-003",
+      name: "Carlos Martinez",
+      email: "carlos@example.com",
+      phone: "+506 8888-3333",
+      type: "driver",
+      message: "I own a 2022 Toyota Fortuner and would like to work with your company.",
+      status: "Rejected",
+      date: "2023-11-13"
+    },
+    {
+      id: "req-004",
+      name: "Sarah Johnson",
+      email: "sarah@example.com",
+      phone: "+1 555-123-4567",
+      type: "customer",
+      message: "I need transportation services for my family vacation in December.",
+      status: "Pending",
+      date: "2023-11-12"
+    }
+  ],
   recentRides: [
     {
       id: "ride-001",

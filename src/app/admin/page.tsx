@@ -1337,6 +1337,66 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
+            {/* Contact Requests */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg font-semibold">Contact Requests</CardTitle>
+                    <CardDescription>Account requests from users</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
+                    <Link href="/admin/contact-requests">
+                      View All
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="divide-y max-h-[200px]">
+                  {dummyAdminStats.contactRequests && dummyAdminStats.contactRequests.slice(0, 3).map((request, index) => (
+                    <div key={index} className="p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{request.name}</p>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Mail className="mr-1 h-3 w-3" />
+                            {request.email}
+                          </div>
+                        </div>
+                        <div className={cn(
+                          "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                          request.status === "Pending" 
+                            ? "bg-yellow-500/10 text-yellow-500"
+                            : request.status === "Approved"
+                              ? "bg-green-500/10 text-green-500"
+                              : "bg-red-500/10 text-red-500"
+                        )}>
+                          {request.status}
+                        </div>
+                      </div>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <User className="mr-1 h-3 w-3" />
+                        <span className="capitalize">{request.type}</span>
+                      </div>
+                      <Link 
+                        href="/admin/contact-requests"
+                        className="text-xs text-blue-500 hover:underline"
+                      >
+                        View details
+                      </Link>
+                    </div>
+                  ))}
+                  {(!dummyAdminStats.contactRequests || dummyAdminStats.contactRequests.length === 0) && (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      No pending contact requests
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
             {/* Rides Management Section */}
             {renderRidesManagement()}
 
