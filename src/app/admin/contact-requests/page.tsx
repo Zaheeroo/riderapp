@@ -347,11 +347,8 @@ export default function ContactRequestsPage() {
         </div>
 
         {/* Stats Overview */}
-        <div className={cn(
-          "grid gap-4",
-          isMobile ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-3"
-        )}>
-          <Card>
+        <div className="flex flex-row gap-4 overflow-x-auto pb-2">
+          <Card className="flex-shrink-0 min-w-[150px]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
             </CardHeader>
@@ -365,7 +362,7 @@ export default function ContactRequestsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0 min-w-[150px]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Customer Requests</CardTitle>
             </CardHeader>
@@ -381,7 +378,7 @@ export default function ContactRequestsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex-shrink-0 min-w-[150px]">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Driver Requests</CardTitle>
             </CardHeader>
@@ -397,76 +394,6 @@ export default function ContactRequestsPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Mobile Navigation Cards (only visible on mobile) */}
-        {isMobile && (
-          <div className="grid grid-cols-2 gap-4 md:hidden mb-4">
-            <Card className="col-span-1">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                <Button 
-                  variant="ghost" 
-                  className="w-full h-full flex flex-col items-center justify-center gap-2"
-                  onClick={() => router.push('/admin')}
-                >
-                  <Home className="h-6 w-6" />
-                  <span className="text-sm font-medium">Dashboard</span>
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="col-span-1">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                <Button 
-                  variant="ghost" 
-                  className="w-full h-full flex flex-col items-center justify-center gap-2"
-                  onClick={() => router.push('/admin/drivers')}
-                >
-                  <Car className="h-6 w-6" />
-                  <span className="text-sm font-medium">Drivers</span>
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="col-span-1">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                <Button 
-                  variant="ghost" 
-                  className="w-full h-full flex flex-col items-center justify-center gap-2"
-                  onClick={() => router.push('/admin/customers')}
-                >
-                  <Users className="h-6 w-6" />
-                  <span className="text-sm font-medium">Customers</span>
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="col-span-1">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                <Button 
-                  variant="ghost" 
-                  className="w-full h-full flex flex-col items-center justify-center gap-2"
-                  onClick={() => router.push('/admin/messages')}
-                >
-                  <MessageSquare className="h-6 w-6" />
-                  <span className="text-sm font-medium">Messages</span>
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="col-span-1">
-              <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                <Button 
-                  variant="ghost" 
-                  className="w-full h-full flex flex-col items-center justify-center gap-2"
-                  onClick={() => router.push('/admin/contact-requests')}
-                >
-                  <ClipboardList className="h-6 w-6" />
-                  <span className="text-sm font-medium">Requests</span>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Contact Requests List */}
         <Card>
