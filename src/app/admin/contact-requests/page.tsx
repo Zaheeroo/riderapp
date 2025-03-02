@@ -452,9 +452,7 @@ export default function ContactRequestsPage() {
                 <p>No contact requests found.</p>
               </div>
             ) : (
-              <ScrollArea className={cn(
-                isMobile ? "max-h-[400px]" : "max-h-[500px]"
-              )}>
+              <ScrollArea className="h-[600px] overflow-auto">
                 {isMobile ? (
                   // Mobile view - Card layout
                   <div className="divide-y">
@@ -548,7 +546,7 @@ export default function ContactRequestsPage() {
                             </TableCell>
                             <TableCell>
                               <Button 
-                                variant="outline" 
+                                variant="ghost" 
                                 size="sm"
                                 onClick={() => handleViewDetails(request)}
                               >
