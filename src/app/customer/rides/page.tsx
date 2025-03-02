@@ -5,6 +5,7 @@ import { dummyCustomerRides } from "@/data/dummy";
 import { Car, Clock, MapPin, Phone, Star, CircleUser, CreditCard, X } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Add MapPinned icon as a custom component since it's not available in lucide-react
 const MapPinned = (props: any) => (
@@ -141,99 +142,101 @@ export default function CustomerRidesPage() {
             <CardDescription>Your ride history</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {dummyCustomerRides.completedRides.map((ride, index) => (
-                <Card key={index}>
-                  <CardContent className="p-6">
-                    <div className="grid gap-6 sm:grid-cols-2">
-                      {/* Driver and Vehicle Info */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={ride.driver.avatar} alt={ride.driver.name} />
-                            <AvatarFallback>{ride.driver.name[0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{ride.driver.name}</p>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Star className="mr-1 h-4 w-4 fill-yellow-400 stroke-yellow-400" />
-                              {ride.driver.rating}
+            <ScrollArea className="max-h-[500px]">
+              <div className="space-y-4">
+                {dummyCustomerRides.completedRides.map((ride, index) => (
+                  <Card key={index}>
+                    <CardContent className="p-6">
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        {/* Driver and Vehicle Info */}
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-4">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={ride.driver.avatar} alt={ride.driver.name} />
+                              <AvatarFallback>{ride.driver.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{ride.driver.name}</p>
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <Star className="mr-1 h-4 w-4 fill-yellow-400 stroke-yellow-400" />
+                                {ride.driver.rating}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Car className="h-4 w-4" />
+                              <span>{ride.driver.vehicle.model} - {ride.driver.vehicle.color}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <CircleUser className="h-4 w-4" />
+                              <span>{ride.driver.vehicle.plate}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Car className="h-4 w-4" />
-                            <span>{ride.driver.vehicle.model} - {ride.driver.vehicle.color}</span>
+
+                        {/* Trip Details */}
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-2">
+                              <MapPin className="h-4 w-4 mt-1 shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium">Pickup</p>
+                                <p className="text-sm text-muted-foreground">{ride.pickup.location}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <MapPinned className="h-4 w-4 mt-1 shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium">Dropoff</p>
+                                <p className="text-sm text-muted-foreground">{ride.dropoff.location}</p>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <CircleUser className="h-4 w-4" />
-                            <span>{ride.driver.vehicle.plate}</span>
+                          <div className="flex flex-wrap gap-4">
+                            <div>
+                              <p className="text-sm font-medium">Date</p>
+                              <p className="text-sm text-muted-foreground">{ride.date}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Time</p>
+                              <p className="text-sm text-muted-foreground">{ride.time}</p>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Trip Details */}
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-2">
-                            <MapPin className="h-4 w-4 mt-1 shrink-0" />
-                            <div>
-                              <p className="text-sm font-medium">Pickup</p>
-                              <p className="text-sm text-muted-foreground">{ride.pickup.location}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <MapPinned className="h-4 w-4 mt-1 shrink-0" />
-                            <div>
-                              <p className="text-sm font-medium">Dropoff</p>
-                              <p className="text-sm text-muted-foreground">{ride.dropoff.location}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-4">
-                          <div>
-                            <p className="text-sm font-medium">Date</p>
-                            <p className="text-sm text-muted-foreground">{ride.date}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Time</p>
-                            <p className="text-sm text-muted-foreground">{ride.time}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
-                      <div className="flex flex-wrap items-center gap-4">
-                        <Badge variant="secondary">Completed</Badge>
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4" />
-                          <span className="text-sm">{ride.payment.method}</span>
-                        </div>
-                        <div className="font-medium">${ride.payment.amount}</div>
-                      </div>
-                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        {ride.customerRating ? (
+                      {/* Footer */}
+                      <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
+                        <div className="flex flex-wrap items-center gap-4">
+                          <Badge variant="secondary">Completed</Badge>
                           <div className="flex items-center gap-2">
-                            <Star className="h-4 w-4 fill-yellow-400 stroke-yellow-400" />
-                            <span>You rated {ride.customerRating}/5</span>
+                            <CreditCard className="h-4 w-4" />
+                            <span className="text-sm">{ride.payment.method}</span>
                           </div>
-                        ) : (
+                          <div className="font-medium">${ride.payment.amount}</div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                          {ride.customerRating ? (
+                            <div className="flex items-center gap-2">
+                              <Star className="h-4 w-4 fill-yellow-400 stroke-yellow-400" />
+                              <span>You rated {ride.customerRating}/5</span>
+                            </div>
+                          ) : (
+                            <Button variant="outline" className="w-full sm:w-auto">
+                              Rate Trip
+                            </Button>
+                          )}
                           <Button variant="outline" className="w-full sm:w-auto">
-                            Rate Trip
+                            Book Similar
                           </Button>
-                        )}
-                        <Button variant="outline" className="w-full sm:w-auto">
-                          Book Similar
-                        </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       </div>

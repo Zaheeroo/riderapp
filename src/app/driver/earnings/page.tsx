@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDeviceType } from "@/hooks/useDeviceType";
+import { Badge } from "@/components/ui/badge";
 
 export default function DriverEarningsPage() {
   const { isMobile } = useDeviceType();
@@ -253,6 +254,44 @@ export default function DriverEarningsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Earnings History */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Earnings History</CardTitle>
+            <CardDescription>Your most recent earnings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="max-h-[400px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Rides</TableHead>
+                    <TableHead>Earnings</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dummyDriverEarnings.earningsHistory.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <div className="font-medium">{item.date}</div>
+                      </TableCell>
+                      <TableCell>{item.rides}</TableCell>
+                      <TableCell>${item.amount.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant={item.status === "Paid" ? "default" : "outline"}>
+                          {item.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
