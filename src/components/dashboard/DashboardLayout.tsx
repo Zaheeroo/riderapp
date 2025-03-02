@@ -56,7 +56,6 @@ export default function DashboardLayout({ children, userType, showMobileHeader =
     ],
     customer: [
       { name: "Dashboard", href: "/customer", icon: Home },
-      { name: "Book a Ride", href: "/customer/book", icon: Car },
       { name: "My Rides", href: "/customer/rides", icon: Users },
       { name: "Messages", href: "/customer/messages", icon: MessageSquare },
     ],

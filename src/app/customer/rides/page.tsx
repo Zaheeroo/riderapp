@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Car, Clock, MapPin, Phone, Star, CircleUser, CreditCard, X, AlertCircle } from "lucide-react";
+import { Car, Clock, MapPin, Phone, Star, CircleUser, CreditCard, X, AlertCircle, Plus } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 
 // Add MapPinned icon as a custom component since it's not available in lucide-react
 const MapPinned = (props: any) => (
@@ -194,9 +195,17 @@ export default function CustomerRidesPage() {
   return (
     <DashboardLayout userType="customer">
       <div className="space-y-8">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">My Rides</h2>
-          <p className="text-muted-foreground">View your upcoming and past rides</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">My Rides</h2>
+            <p className="text-muted-foreground">View your upcoming and past rides</p>
+          </div>
+          <Button asChild>
+            <Link href="/customer/book">
+              <Plus className="mr-2 h-4 w-4" />
+              Book a Ride
+            </Link>
+          </Button>
         </div>
 
         {isLoading ? (
