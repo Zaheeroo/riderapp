@@ -304,7 +304,7 @@ export default function ContactRequestsPage() {
               Manage account requests from potential customers and drivers
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="icon"
@@ -319,6 +319,7 @@ export default function ContactRequestsPage() {
                 size="sm"
                 onClick={testSound}
                 title="Test notification sound"
+                className={isMobile ? "text-xs px-2" : ""}
               >
                 Test Sound
               </Button>
@@ -328,10 +329,11 @@ export default function ContactRequestsPage() {
               size="sm" 
               onClick={fetchContactRequests}
               disabled={loading}
+              className={isMobile ? "text-xs px-2" : ""}
             >
               {loading ? "Refreshing..." : "Refresh"}
             </Button>
-            <div className="relative">
+            <div className="relative w-full sm:w-auto mt-2 sm:mt-0">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
@@ -347,7 +349,7 @@ export default function ContactRequestsPage() {
         {/* Stats Overview */}
         <div className={cn(
           "grid gap-4",
-          isMobile ? "grid-cols-2" : "grid-cols-3"
+          isMobile ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-3"
         )}>
           <Card>
             <CardHeader className="pb-2">
@@ -398,7 +400,7 @@ export default function ContactRequestsPage() {
 
         {/* Mobile Navigation Cards (only visible on mobile) */}
         {isMobile && (
-          <div className="grid grid-cols-2 gap-4 md:hidden">
+          <div className="grid grid-cols-2 gap-4 md:hidden mb-4">
             <Card className="col-span-1">
               <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                 <Button 
@@ -497,7 +499,7 @@ export default function ContactRequestsPage() {
               </div>
             ) : (
               <ScrollArea className={cn(
-                isMobile ? "max-h-[300px]" : "max-h-[400px]"
+                isMobile ? "max-h-[400px]" : "max-h-[500px]"
               )}>
                 {isMobile ? (
                   // Mobile view - Card layout
@@ -505,7 +507,7 @@ export default function ContactRequestsPage() {
                     {filteredRequests.map((request) => (
                       <div key={request.id} className="p-4 space-y-4">
                         <div className="flex items-center justify-between">
-                          <div>
+                          <div className="space-y-1">
                             <p className="font-medium">{request.name}</p>
                             <div className="flex items-center text-xs text-muted-foreground">
                               <Mail className="mr-1 h-3 w-3" />
@@ -517,7 +519,7 @@ export default function ContactRequestsPage() {
                             </div>
                             <div className="flex items-center text-xs text-muted-foreground mt-1">
                               <User className="mr-1 h-3 w-3" />
-                              {request.user_type === 'customer' ? 'Customer' : 'Driver'}
+                              <span className="capitalize">{request.user_type}</span>
                             </div>
                             <div className="flex items-center text-xs text-muted-foreground mt-1">
                               <Calendar className="mr-1 h-3 w-3" />
@@ -536,6 +538,7 @@ export default function ContactRequestsPage() {
                             variant="outline" 
                             size="sm"
                             onClick={() => handleViewDetails(request)}
+                            className="w-full"
                           >
                             View Details
                           </Button>
@@ -612,7 +615,10 @@ export default function ContactRequestsPage() {
 
       {/* Request Details Modal */}
       <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={cn(
+          "sm:max-w-md",
+          isMobile ? "w-[95%] max-h-[90vh] overflow-y-auto" : ""
+        )}>
           <DialogHeader>
             <DialogTitle>Contact Request Details</DialogTitle>
             <DialogDescription>Review the request details and take action</DialogDescription>
@@ -673,13 +679,17 @@ export default function ContactRequestsPage() {
             </div>
           )}
           
-          <DialogFooter className="flex justify-between">
+          <DialogFooter className={cn(
+            "flex",
+            isMobile ? "flex-col space-y-2" : "justify-between"
+          )}>
             {selectedRequest?.status === 'Pending' && (
               <>
                 <Button 
                   variant="destructive" 
                   onClick={handleReject}
                   disabled={processingAction}
+                  className={isMobile ? "w-full" : ""}
                 >
                   <X className="h-4 w-4 mr-2" />
                   Reject
@@ -687,6 +697,7 @@ export default function ContactRequestsPage() {
                 <Button 
                   onClick={handleApprove}
                   disabled={processingAction}
+                  className={isMobile ? "w-full" : ""}
                 >
                   <Check className="h-4 w-4 mr-2" />
                   Approve
@@ -697,7 +708,7 @@ export default function ContactRequestsPage() {
               <Button 
                 variant="outline" 
                 onClick={() => setShowDetailsModal(false)}
-                className="ml-auto"
+                className={isMobile ? "w-full" : "ml-auto"}
               >
                 Close
               </Button>
