@@ -1,214 +1,239 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Car, Clock, MapPin, Phone, Star, CircleUser, CreditCard, X, AlertCircle, Plus, Search, Users, DollarSign, Calendar, Loader2 } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "../../../../contexts";
+import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { dummyCustomersExtended, dummyDrivers, dummyBookingData, dummyAdminStats } from "@/data/dummy";
-import { Car, Clock, MapPin, Plus, Search, Users, DollarSign, Calendar, Loader2, FolderX } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDeviceType } from "@/hooks/useDeviceType";
-import { useToast } from "@/hooks/use-toast";
-import { RideService, RideData } from "../../../../lib/services/ride-service";
-import { useAuth } from "../../../../contexts";
-import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import Link from "next/link";
+
+// Add MapPinned icon as a custom component since it's not available in lucide-react
+const MapPinned = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
 
 export default function AdminRidesPage() {
-  const { isMobile } = useDeviceType();
-  const { toast } = useToast();
   const { user } = useAuth();
-  const [showNewTripForm, setShowNewTripForm] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [rides, setRides] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [drivers, setDrivers] = useState<any[]>([]);
+  const { toast } = useToast();
+  const { isMobile } = useDeviceType();
+  const [upcomingRides, setUpcomingRides] = useState<any[]>([]);
+  const [completedRides, setCompletedRides] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
+  const [selectedRide, setSelectedRide] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Stats
   const [stats, setStats] = useState({
     todayRides: 0,
     weeklyRides: 0,
     revenueToday: 0,
     activeDrivers: 0
   });
-  
-  // Form state
-  const [formData, setFormData] = useState<Partial<RideData>>({
-    customer_id: undefined,
-    driver_id: null,
-    pickup_location: '',
-    dropoff_location: '',
-    pickup_date: '',
-    pickup_time: '',
-    trip_type: '',
-    vehicle_type: '',
-    passengers: 1,
-    price: 0,
-    payment_status: 'Pending',
-    special_requirements: '',
-    admin_notes: ''
-  });
-  const [formLoading, setFormLoading] = useState(false);
 
-  // Fetch data
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    // Only fetch data if we have a user
+    if (!user) return;
+    
+    const fetchRides = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        // Fetch rides
-        const { data: ridesData, error: ridesError } = await RideService.getAllRides();
+        const response = await fetch(`/api/admin/rides`);
         
-        if (ridesError) {
-          console.error('Error fetching rides:', ridesError);
-          throw ridesError;
+        if (!response.ok) {
+          throw new Error('Failed to fetch rides');
         }
         
-        console.log('Rides data fetched:', ridesData);
-        setRides(ridesData || []);
+        const { data: ridesData, error: ridesError } = await response.json();
+        
+        if (ridesError) {
+          throw new Error(ridesError);
+        }
+        
+        if (!ridesData || ridesData.length === 0) {
+          // No rides found, keep the empty arrays
+          setIsLoading(false);
+          return;
+        }
+        
+        // Split rides into upcoming and completed
+        const today = new Date();
+        const upcoming = [];
+        const completed = [];
+        
+        for (const ride of ridesData) {
+          const rideDate = new Date(`${ride.pickup_date}T${ride.pickup_time}`);
+          
+          if (ride.status === 'Completed' || ride.status === 'Cancelled') {
+            completed.push(ride);
+          } else if (rideDate >= today || ride.status === 'In Progress') {
+            upcoming.push(ride);
+          } else {
+            completed.push(ride);
+          }
+        }
+        
+        setUpcomingRides(upcoming);
+        setCompletedRides(completed);
         
         // Calculate stats
-        const today = new Date().toISOString().split('T')[0];
-        const todayRides = ridesData?.filter(ride => ride.pickup_date === today) || [];
+        const todayString = today.toISOString().split('T')[0];
+        const todayRides = ridesData.filter((ride: any) => ride.pickup_date === todayString);
+        
         const weekStart = new Date();
         weekStart.setDate(weekStart.getDate() - 7);
-        const weeklyRides = ridesData?.filter(ride => new Date(ride.pickup_date) >= weekStart) || [];
+        const weeklyRides = ridesData.filter((ride: any) => new Date(ride.pickup_date) >= weekStart);
+        
+        const activeDrivers = new Set(ridesData.filter((ride: any) => ride.driver_id).map((ride: any) => ride.driver_id)).size;
         
         setStats({
           todayRides: todayRides.length,
           weeklyRides: weeklyRides.length,
-          revenueToday: todayRides.reduce((sum, ride) => sum + parseFloat(ride.price), 0),
-          activeDrivers: new Set(ridesData?.filter(ride => ride.driver_id).map(ride => ride.driver_id)).size
+          revenueToday: todayRides.reduce((sum: number, ride: any) => sum + parseFloat(ride.price), 0),
+          activeDrivers: activeDrivers
         });
-        
-        // Fetch customers and drivers for the form
-        // In a real app, you would fetch these from your database
-        setCustomers(dummyCustomersExtended);
-        setDrivers(dummyDrivers);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load rides data. Please check your connection and try again.",
-          variant: "destructive",
-        });
-        
-        // Set empty rides array to show "No rides found" message
-        setRides([]);
+      } catch (error: any) {
+        console.error('Error fetching rides:', error);
+        setError(error.message || 'Failed to load rides');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     
-    if (user) {
-      fetchData();
-    }
-  }, [user, toast]);
-  
-  // Handle form input changes
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    fetchRides();
+  }, [user]);
+
+  const handleCancelClick = (ride: any) => {
+    setSelectedRide(ride);
+    setShowCancelConfirmation(true);
   };
-  
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+
+  const handleConfirmCancel = async () => {
+    if (!selectedRide) return;
     
-    if (!user?.id) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to create a ride",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Validate form
-    if (!formData.customer_id || !formData.pickup_location || !formData.dropoff_location || 
-        !formData.pickup_date || !formData.pickup_time || !formData.trip_type || 
-        !formData.vehicle_type || !formData.passengers || !formData.price) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setFormLoading(true);
+    setIsSubmitting(true);
     
     try {
-      const { data, error } = await RideService.createRide(formData as RideData, user.id);
+      const response = await fetch('/api/admin/rides/update-status', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rideId: selectedRide.id, status: 'Cancelled' }),
+      });
       
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to cancel ride');
+      }
+      
+      const { data } = await response.json();
       
       toast({
         title: "Success",
-        description: "Ride created successfully",
+        description: "Ride has been cancelled",
         variant: "success",
       });
       
-      // Reset form and refresh data
-      setFormData({
-        customer_id: undefined,
-        driver_id: null,
-        pickup_location: '',
-        dropoff_location: '',
-        pickup_date: '',
-        pickup_time: '',
-        trip_type: '',
-        vehicle_type: '',
-        passengers: 1,
-        price: 0,
-        payment_status: 'Pending',
-        special_requirements: '',
-        admin_notes: ''
-      });
+      // Update the local state
+      setUpcomingRides(prev => prev.filter(ride => ride.id !== selectedRide.id));
+      setCompletedRides(prev => [...prev, { ...data, status: 'Cancelled' }]);
       
-      // Add the new ride to the list
-      setRides(prev => [data, ...prev]);
-      
-      // Close the form
-      setShowNewTripForm(false);
-    } catch (error) {
-      console.error('Error creating ride:', error);
+      // Close the confirmation dialog
+      setShowCancelConfirmation(false);
+      setSelectedRide(null);
+    } catch (error: any) {
+      console.error('Error cancelling ride:', error);
       toast({
         title: "Error",
-        description: "Failed to create ride",
+        description: error.message || "Failed to cancel the ride",
         variant: "destructive",
       });
     } finally {
-      setFormLoading(false);
+      setIsSubmitting(false);
     }
   };
+  
+  // Filter rides based on search term
+  const filteredUpcomingRides = upcomingRides.filter(ride => {
+    const matchesSearch = 
+      searchTerm === '' || 
+      ride.pickup_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ride.dropoff_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ride.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ride.driver?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesStatus = 
+      statusFilter === 'all' || 
+      ride.status.toLowerCase() === statusFilter.toLowerCase();
+      
+    return matchesSearch && matchesStatus;
+  });
+  
+  const filteredCompletedRides = completedRides.filter(ride => {
+    const matchesSearch = 
+      searchTerm === '' || 
+      ride.pickup_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ride.dropoff_location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ride.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ride.driver?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesStatus = 
+      statusFilter === 'all' || 
+      ride.status.toLowerCase() === statusFilter.toLowerCase();
+      
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <DashboardLayout userType="admin">
       <div className="space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Rides Management</h2>
-            <p className="text-muted-foreground">
-              Create and manage scheduled trips
-            </p>
+            <p className="text-muted-foreground">View and manage all customer rides</p>
           </div>
-          <Button 
-            className="w-full sm:w-auto"
-            onClick={() => setShowNewTripForm(!showNewTripForm)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {showNewTripForm ? "Hide Form" : "Create New Trip"}
+          <Button asChild>
+            <Link href="/admin/rides/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Ride
+            </Link>
           </Button>
         </div>
 
@@ -222,15 +247,12 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Today's Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[100px]">
-                <div className="flex flex-col">
-                  <div className="text-2xl font-bold">{stats.todayRides}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {rides.filter(r => r.status === "Completed" && r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
-                  </p>
-                  <p className="text-xs text-green-500">+15% from yesterday</p>
-                </div>
-              </ScrollArea>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">{stats.todayRides}</div>
+                <p className="text-xs text-muted-foreground">
+                  {completedRides.filter(r => r.status === "Completed" && r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -239,15 +261,12 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Weekly Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[100px]">
-                <div className="flex flex-col">
-                  <div className="text-2xl font-bold">{stats.weeklyRides}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {Math.round(stats.weeklyRides / 7)} rides per day avg
-                  </p>
-                  <p className="text-xs text-green-500">+8% this week</p>
-                </div>
-              </ScrollArea>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">{stats.weeklyRides}</div>
+                <p className="text-xs text-muted-foreground">
+                  {Math.round(stats.weeklyRides / 7)} rides per day avg
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -256,15 +275,12 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[100px]">
-                <div className="flex flex-col">
-                  <div className="text-2xl font-bold">${stats.revenueToday.toFixed(2)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    ${stats.todayRides > 0 ? (stats.revenueToday / stats.todayRides).toFixed(2) : '0'} per ride avg
-                  </p>
-                  <p className="text-xs text-green-500">+12% from yesterday</p>
-                </div>
-              </ScrollArea>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">${stats.revenueToday.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground">
+                  ${stats.todayRides > 0 ? (stats.revenueToday / stats.todayRides).toFixed(2) : '0'} per ride avg
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -273,412 +289,359 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[100px]">
-                <div className="flex flex-col">
-                  <div className="text-2xl font-bold">{stats.activeDrivers}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.activeDrivers > 0 ? Math.round(rides.length / stats.activeDrivers) : '0'} rides per driver
-                  </p>
-                  <p className="text-xs text-green-500">+2 from yesterday</p>
-                </div>
-              </ScrollArea>
+              <div className="flex flex-col">
+                <div className="text-2xl font-bold">{stats.activeDrivers}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats.activeDrivers > 0 ? Math.round((upcomingRides.length + completedRides.length) / stats.activeDrivers) : '0'} rides per driver
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Create New Trip Form - Collapsible */}
-        {showNewTripForm && (
+        {/* Search and Filter */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative w-full sm:w-1/2">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by location, customer or driver..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="in progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
           <Card>
-            <CardHeader>
-              <CardTitle>Create New Trip</CardTitle>
-              <CardDescription>Fill in the details for the new trip</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit}>
-                <div className="grid gap-6">
-                  {/* Basic Info Section */}
-                  <div className={cn(
-                    "grid gap-4",
-                    isMobile ? "grid-cols-1" : "grid-cols-2"
-                  )}>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Select Customer</label>
-                      <Select 
-                        onValueChange={(value) => handleInputChange('customer_id', parseInt(value))}
-                        value={formData.customer_id?.toString()}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a customer" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {customers.map((customer) => (
-                            <SelectItem key={customer.id} value={customer.id.toString()}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{customer.name}</span>
-                                <span className="text-xs text-muted-foreground">{customer.phone}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Assign Driver</label>
-                      <Select
-                        onValueChange={(value) => handleInputChange('driver_id', value === 'none' ? null : parseInt(value))}
-                        value={formData.driver_id?.toString() || 'none'}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a driver" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Assign Later</SelectItem>
-                          {drivers.map((driver) => (
-                            <SelectItem key={driver.id} value={driver.id.toString()}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{driver.name}</span>
-                                <span className="text-xs text-muted-foreground">{driver.vehicle.model}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Trip Details Section */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Trip Type</label>
-                      <Select
-                        onValueChange={(value) => handleInputChange('trip_type', value)}
-                        value={formData.trip_type}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select trip type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Airport Transfer">Airport Transfer</SelectItem>
-                          <SelectItem value="Guided Tour">Guided Tour</SelectItem>
-                          <SelectItem value="Point to Point Transfer">Point to Point Transfer</SelectItem>
-                          <SelectItem value="Hourly Charter">Hourly Charter</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Pickup Location</label>
-                      <Input 
-                        placeholder="Hotel name, airport, or address" 
-                        value={formData.pickup_location}
-                        onChange={(e) => handleInputChange('pickup_location', e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Destination</label>
-                      <Input 
-                        placeholder="Final destination" 
-                        value={formData.dropoff_location}
-                        onChange={(e) => handleInputChange('dropoff_location', e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Date and Time Section */}
-                  <div className={cn(
-                    "grid gap-4",
-                    isMobile ? "grid-cols-1" : "grid-cols-2"
-                  )}>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Pickup Date</label>
-                      <Input 
-                        type="date" 
-                        min={new Date().toISOString().split('T')[0]} 
-                        value={formData.pickup_date}
-                        onChange={(e) => handleInputChange('pickup_date', e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Pickup Time</label>
-                      <Input 
-                        type="time" 
-                        value={formData.pickup_time}
-                        onChange={(e) => handleInputChange('pickup_time', e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Vehicle and Passengers Section */}
-                  <div className={cn(
-                    "grid gap-4",
-                    isMobile ? "grid-cols-1" : "grid-cols-2"
-                  )}>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Vehicle Type</label>
-                      <Select
-                        onValueChange={(value) => handleInputChange('vehicle_type', value)}
-                        value={formData.vehicle_type}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select vehicle type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {dummyBookingData.vehicleTypes.map((vehicle) => (
-                            <SelectItem key={vehicle.id} value={vehicle.name}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{vehicle.name}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  Up to {vehicle.features.includes("Extra Luggage Space") ? "12" : "6"} passengers
-                                </span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Number of Passengers</label>
-                      <Select
-                        onValueChange={(value) => handleInputChange('passengers', parseInt(value))}
-                        value={formData.passengers?.toString()}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select passengers" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[1,2,3,4,5,6,7,8,9,10,11,12].map((num) => (
-                            <SelectItem key={num} value={num.toString()}>
-                              {num} {num === 1 ? 'passenger' : 'passengers'}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Price and Payment Section */}
-                  <div className={cn(
-                    "grid gap-4",
-                    isMobile ? "grid-cols-1" : "grid-cols-2"
-                  )}>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Trip Price ($)</label>
-                      <Input 
-                        type="number" 
-                        placeholder="Enter trip price" 
-                        value={formData.price?.toString() || ''}
-                        onChange={(e) => handleInputChange('price', parseFloat(e.target.value))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Payment Status</label>
-                      <Select
-                        onValueChange={(value) => handleInputChange('payment_status', value)}
-                        value={formData.payment_status}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Pending">Pending</SelectItem>
-                          <SelectItem value="Paid">Paid</SelectItem>
-                          <SelectItem value="Partial">Partial Payment</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Notes Section */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Special Requirements</label>
-                      <Textarea 
-                        placeholder="Child seat, wheelchair access, specific language driver, etc."
-                        className="min-h-[80px]"
-                        value={formData.special_requirements || ''}
-                        onChange={(e) => handleInputChange('special_requirements', e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Admin Notes</label>
-                      <Textarea 
-                        placeholder="Internal notes (not visible to customer)"
-                        className="min-h-[80px]"
-                        value={formData.admin_notes || ''}
-                        onChange={(e) => handleInputChange('admin_notes', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="w-full sm:w-auto"
-                    onClick={() => setShowNewTripForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="w-full sm:w-auto"
-                    disabled={formLoading}
-                  >
-                    {formLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      'Create Trip'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Upcoming Trips */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-lg font-semibold">Upcoming Trips</CardTitle>
-                <CardDescription>View and manage scheduled rides</CardDescription>
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Input
-                  placeholder="Search trips..."
-                  className="w-full sm:w-[300px]"
-                />
-                <Button variant="outline" className="shrink-0">
-                  <Search className="h-4 w-4" />
+            <CardContent className="p-6">
+              <div className="text-center py-8 text-destructive">
+                <p>{error}</p>
+                <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                  Try Again
                 </Button>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-[600px] overflow-auto">
-              {loading ? (
-                <div className="flex justify-center items-center h-40">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : rides.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <FolderX className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No rides found</h3>
-                  <p className="text-sm text-muted-foreground mt-1 mb-4">
-                    There are no rides in the system yet. Create your first ride to get started.
-                  </p>
-                  <Button onClick={() => setShowAddRideForm(true)}>Add New Ride</Button>
-                </div>
-              ) : isMobile ? (
-                // Mobile view - Card layout
-                <div className="divide-y">
-                  {rides.map((ride) => (
-                    <div key={ride.id} className="p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{ride.customer?.name || 'Unknown Customer'}</p>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Clock className="mr-1 h-3 w-3" />
-                            {ride.pickup_time}
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Upcoming Rides */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upcoming Rides</CardTitle>
+                <CardDescription>All scheduled trips</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {filteredUpcomingRides.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No upcoming rides found.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredUpcomingRides.map((ride) => (
+                      <Card key={ride.id}>
+                        <CardContent className="p-6">
+                          <div className="grid gap-6 sm:grid-cols-2">
+                            {/* Customer and Driver Info */}
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-4">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={ride.customer?.avatar || '/placeholder-avatar.png'} alt={ride.customer?.name || 'Customer'} />
+                                  <AvatarFallback>{ride.customer?.name?.[0] || 'C'}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium">{ride.customer?.name || 'Unknown Customer'}</p>
+                                  <p className="text-sm text-muted-foreground">{ride.customer?.phone || 'No phone'}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-4">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={ride.driver?.avatar || '/placeholder-avatar.png'} alt={ride.driver?.name || 'Driver'} />
+                                  <AvatarFallback>{ride.driver?.name?.[0] || 'D'}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium">{ride.driver?.name || 'Driver not assigned yet'}</p>
+                                  {ride.driver && (
+                                    <div className="flex items-center text-sm text-muted-foreground">
+                                      <Star className="mr-1 h-4 w-4 fill-yellow-400 stroke-yellow-400" />
+                                      {ride.driver.rating || '4.8'}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {ride.driver && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Car className="h-4 w-4" />
+                                    <span>{ride.driver.vehicle_model} - {ride.driver.vehicle_color}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <CircleUser className="h-4 w-4" />
+                                    <span>{ride.driver.vehicle_plate}</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Trip Details */}
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="h-4 w-4 mt-1 shrink-0" />
+                                  <div>
+                                    <p className="text-sm font-medium">Pickup</p>
+                                    <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <MapPinned className="h-4 w-4 mt-1 shrink-0" />
+                                  <div>
+                                    <p className="text-sm font-medium">Dropoff</p>
+                                    <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap gap-4">
+                                <div>
+                                  <p className="text-sm font-medium">Date</p>
+                                  <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">Time</p>
+                                  <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <MapPin className="mr-1 h-3 w-3" />
-                            {ride.dropoff_location}
+
+                          {/* Footer */}
+                          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
+                            <div className="flex flex-wrap items-center gap-4">
+                              <Badge variant={ride.status === 'Confirmed' ? 'default' : 'secondary'}>
+                                {ride.status}
+                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <CreditCard className="h-4 w-4" />
+                                <span className="text-sm">{ride.payment_status}</span>
+                              </div>
+                              <div className="font-medium">${parseFloat(ride.price).toFixed(2)}</div>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                              <Button variant="outline" className="w-full sm:w-auto" asChild>
+                                <Link href={`/admin/rides/${ride.id}`}>
+                                  View Details
+                                </Link>
+                              </Button>
+                              {ride.status !== 'In Progress' && (
+                                <Button 
+                                  variant="destructive" 
+                                  className="w-full sm:w-auto"
+                                  onClick={() => handleCancelClick(ride)}
+                                >
+                                  <X className="mr-2 h-4 w-4" />
+                                  Cancel Ride
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        <div className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                          ride.status === "Completed" ? "bg-green-500/10 text-green-500" :
-                          ride.status === "In Progress" ? "bg-blue-500/10 text-blue-500" :
-                          ride.status === "Confirmed" ? "bg-blue-500/10 text-blue-500" :
-                          ride.status === "Cancelled" ? "bg-red-500/10 text-red-500" :
-                          "bg-yellow-500/10 text-yellow-500"
-                        )}>
-                          {ride.status}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <p className="text-sm">Driver: {ride.driver?.name || 'Unassigned'}</p>
-                          <p className="text-sm font-medium">${parseFloat(ride.price).toFixed(2)}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">View</Button>
-                          <Button size="sm">Edit</Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                // Desktop view - Table layout
-                <div className="min-w-[800px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date & Time</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Driver</TableHead>
-                        <TableHead>Route</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {rides.map((ride) => (
-                        <TableRow key={ride.id}>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <p className="font-medium">{ride.pickup_date}</p>
-                              <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Completed Rides */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Completed & Cancelled Rides</CardTitle>
+                <CardDescription>Past trips</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {filteredCompletedRides.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No completed or cancelled rides found.
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[400px]">
+                    <div className="space-y-4">
+                      {filteredCompletedRides.map((ride) => (
+                        <Card key={ride.id}>
+                          <CardContent className="p-6">
+                            <div className="grid gap-6 sm:grid-cols-2">
+                              {/* Customer and Driver Info */}
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-4">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarImage src={ride.customer?.avatar || '/placeholder-avatar.png'} alt={ride.customer?.name || 'Customer'} />
+                                    <AvatarFallback>{ride.customer?.name?.[0] || 'C'}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">{ride.customer?.name || 'Unknown Customer'}</p>
+                                    <p className="text-sm text-muted-foreground">{ride.customer?.phone || 'No phone'}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-4">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarImage src={ride.driver?.avatar || '/placeholder-avatar.png'} alt={ride.driver?.name || 'Driver'} />
+                                    <AvatarFallback>{ride.driver?.name?.[0] || 'D'}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">{ride.driver?.name || 'No Driver'}</p>
+                                    {ride.driver && (
+                                      <div className="flex items-center text-sm text-muted-foreground">
+                                        <Star className="mr-1 h-4 w-4 fill-yellow-400 stroke-yellow-400" />
+                                        {ride.driver.rating || '4.8'}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Trip Details */}
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <div className="flex items-start gap-2">
+                                    <MapPin className="h-4 w-4 mt-1 shrink-0" />
+                                    <div>
+                                      <p className="text-sm font-medium">Pickup</p>
+                                      <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-start gap-2">
+                                    <MapPinned className="h-4 w-4 mt-1 shrink-0" />
+                                    <div>
+                                      <p className="text-sm font-medium">Dropoff</p>
+                                      <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-4">
+                                  <div>
+                                    <p className="text-sm font-medium">Date</p>
+                                    <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium">Time</p>
+                                    <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          </TableCell>
-                          <TableCell>{ride.customer?.name || 'Unknown Customer'}</TableCell>
-                          <TableCell>{ride.driver?.name || 'Unassigned'}</TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <p className="text-sm">From: {ride.pickup_location}</p>
-                              <p className="text-sm">To: {ride.dropoff_location}</p>
+
+                            {/* Footer */}
+                            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
+                              <div className="flex flex-wrap items-center gap-4">
+                                <Badge variant={ride.status === 'Completed' ? 'default' : 'destructive'}>
+                                  {ride.status}
+                                </Badge>
+                                <div className="flex items-center gap-2">
+                                  <CreditCard className="h-4 w-4" />
+                                  <span className="text-sm">{ride.payment_status}</span>
+                                </div>
+                                <div className="font-medium">${parseFloat(ride.price).toFixed(2)}</div>
+                              </div>
+                              <Button variant="outline" className="w-full sm:w-auto" asChild>
+                                <Link href={`/admin/rides/${ride.id}`}>
+                                  View Details
+                                </Link>
+                              </Button>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className={cn(
-                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                              ride.status === "Completed" ? "bg-green-500/10 text-green-500" :
-                              ride.status === "In Progress" ? "bg-blue-500/10 text-blue-500" :
-                              ride.status === "Confirmed" ? "bg-blue-500/10 text-blue-500" :
-                              ride.status === "Cancelled" ? "bg-red-500/10 text-red-500" :
-                              "bg-yellow-500/10 text-yellow-500"
-                            )}>
-                              {ride.status}
-                            </div>
-                          </TableCell>
-                          <TableCell>${parseFloat(ride.price).toFixed(2)}</TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button variant="outline" size="sm">View</Button>
-                              <Button variant="outline" size="sm">Edit</Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                          </CardContent>
+                        </Card>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {/* Cancel Confirmation Dialog */}
+        <Dialog open={showCancelConfirmation} onOpenChange={setShowCancelConfirmation}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center text-red-600">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                Confirm Cancellation
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to cancel this ride? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedRide && (
+              <div className="border rounded-md p-3 bg-muted/50">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Customer: {selectedRide.customer?.name || 'Unknown'}</p>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 mt-1 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Pickup</p>
+                      <p className="text-sm text-muted-foreground">{selectedRide.pickup_location}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPinned className="h-4 w-4 mt-1 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Dropoff</p>
+                      <p className="text-sm text-muted-foreground">{selectedRide.dropoff_location}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Date</p>
+                      <p className="text-sm text-muted-foreground">{selectedRide.pickup_date}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Time</p>
+                      <p className="text-sm text-muted-foreground">{selectedRide.pickup_time}</p>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCancelConfirmation(false)}
+                disabled={isSubmitting}
+              >
+                Keep Ride
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleConfirmCancel}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Cancelling...' : 'Cancel Ride'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
