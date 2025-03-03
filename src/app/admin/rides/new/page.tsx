@@ -28,7 +28,13 @@ export default function CreateRidePage() {
     pickup_date: new Date().toISOString().split('T')[0],
     pickup_time: "12:00",
     price: "",
-    status: "Pending"
+    status: "Pending",
+    trip_type: "One-way",
+    vehicle_type: "Standard",
+    passengers: 1,
+    payment_status: "Pending",
+    special_requirements: "",
+    admin_notes: ""
   });
 
   useEffect(() => {
@@ -43,7 +49,7 @@ export default function CreateRidePage() {
           throw new Error('Failed to fetch customers');
         }
         const customersData = await customersResponse.json();
-        setCustomers(customersData.data || []);
+        setCustomers(customersData || []);
         
         // Fetch drivers
         const driversResponse = await fetch('/api/admin/drivers');
@@ -51,7 +57,7 @@ export default function CreateRidePage() {
           throw new Error('Failed to fetch drivers');
         }
         const driversData = await driversResponse.json();
-        setDrivers(driversData.data || []);
+        setDrivers(driversData || []);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
@@ -71,12 +77,19 @@ export default function CreateRidePage() {
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    console.log(`Updating ${name} to ${value}`);
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      console.log('Updated form data:', updated);
+      return updated;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
+    console.log('Submitting form data:', formData);
     
     try {
       const response = await fetch('/api/admin/rides', {
@@ -87,12 +100,14 @@ export default function CreateRidePage() {
         body: JSON.stringify(formData),
       });
       
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create ride');
+        console.error('Error response:', responseData);
+        throw new Error(responseData.error || 'Failed to create ride');
       }
       
-      const { data } = await response.json();
+      console.log('Success response:', responseData);
       
       toast({
         title: "Success",
@@ -133,6 +148,7 @@ export default function CreateRidePage() {
                   <div className="space-y-2">
                     <Label htmlFor="customer_id">Customer</Label>
                     <Select 
+                      key={`customer-select-${formData.customer_id}`}
                       value={formData.customer_id} 
                       onValueChange={(value) => handleSelectChange('customer_id', value)}
                     >
@@ -152,6 +168,7 @@ export default function CreateRidePage() {
                   <div className="space-y-2">
                     <Label htmlFor="driver_id">Driver</Label>
                     <Select 
+                      key={`driver-select-${formData.driver_id}`}
                       value={formData.driver_id} 
                       onValueChange={(value) => handleSelectChange('driver_id', value)}
                     >
@@ -275,6 +292,98 @@ export default function CreateRidePage() {
                       <SelectItem value="In Progress">In Progress</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="trip_type">Trip Type</Label>
+                  <Select 
+                    value={formData.trip_type} 
+                    onValueChange={(value) => handleSelectChange('trip_type', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select trip type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="One-way">One-way</SelectItem>
+                      <SelectItem value="Airport Transfer">Airport Transfer</SelectItem>
+                      <SelectItem value="Guided Tour">Guided Tour</SelectItem>
+                      <SelectItem value="Point to Point Transfer">Point to Point Transfer</SelectItem>
+                      <SelectItem value="Hourly Charter">Hourly Charter</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vehicle_type">Vehicle Type</Label>
+                  <Select 
+                    value={formData.vehicle_type} 
+                    onValueChange={(value) => handleSelectChange('vehicle_type', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select vehicle type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Standard">Standard</SelectItem>
+                      <SelectItem value="Premium">Premium</SelectItem>
+                      <SelectItem value="SUV">SUV</SelectItem>
+                      <SelectItem value="Luxury">Luxury</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="passengers">Number of Passengers</Label>
+                  <Input
+                    id="passengers"
+                    name="passengers"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={formData.passengers}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="payment_status">Payment Status</Label>
+                  <Select 
+                    value={formData.payment_status} 
+                    onValueChange={(value) => handleSelectChange('payment_status', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Partial">Partial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="special_requirements">Special Requirements</Label>
+                  <Input
+                    id="special_requirements"
+                    name="special_requirements"
+                    placeholder="Any special requirements or requests"
+                    value={formData.special_requirements}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="admin_notes">Admin Notes</Label>
+                  <Input
+                    id="admin_notes"
+                    name="admin_notes"
+                    placeholder="Internal notes for admin use"
+                    value={formData.admin_notes}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
               

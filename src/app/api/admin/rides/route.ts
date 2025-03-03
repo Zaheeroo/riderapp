@@ -49,12 +49,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     
     // Validate required fields
-    const requiredFields = ['customer_id', 'pickup_location', 'dropoff_location', 'pickup_date', 'pickup_time', 'price', 'status'];
+    const requiredFields = ['customer_id', 'pickup_location', 'dropoff_location', 'pickup_date', 'pickup_time', 'price', 'status', 'trip_type', 'vehicle_type', 'passengers', 'payment_status'];
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json({ error: `${field} is required` }, { status: 400 });
       }
     }
+    
+    // Get the user ID from the request (in a real app, this would come from auth)
+    // For now, we'll use a placeholder user ID
+    const userId = 'a4a6c260-92c5-4ee9-b5e0-0d4edeb5f79b'; // Placeholder admin user ID
     
     // Create the ride
     const { data, error } = await supabase
@@ -68,6 +72,13 @@ export async function POST(request: NextRequest) {
         pickup_time: body.pickup_time,
         price: body.price,
         status: body.status,
+        trip_type: body.trip_type,
+        vehicle_type: body.vehicle_type,
+        passengers: body.passengers,
+        payment_status: body.payment_status,
+        special_requirements: body.special_requirements || null,
+        admin_notes: body.admin_notes || null,
+        created_by: userId,
         created_at: new Date().toISOString()
       }])
       .select()
