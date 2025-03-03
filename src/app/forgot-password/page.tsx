@@ -37,6 +37,11 @@ export default function ForgotPasswordPage() {
       
       const supabase = createClient();
       
+      // Add null check for Supabase client
+      if (!supabase) {
+        throw new Error('Unable to initialize Supabase client');
+      }
+      
       // Send password reset email
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
