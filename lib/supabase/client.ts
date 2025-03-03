@@ -1,16 +1,24 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 export const createClient = () => {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Supabase environment variables are missing');
-    throw new Error('Supabase environment variables are missing');
+  if (typeof window === 'undefined') {
+    console.warn('Attempting to create Supabase client in server context');
+    return null;
   }
 
-  console.log('Initializing Supabase client with URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Supabase credentials are missing');
+    return null;
+  }
+
+  console.log('Initializing Supabase client with URL:', supabaseUrl);
   
   return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       auth: {
         persistSession: true,
