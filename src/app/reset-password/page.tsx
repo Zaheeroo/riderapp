@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { createClient } from "../../../lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -21,14 +21,15 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Check if we have a valid hash in the URL
+  // Check if we have a valid code in the URL
   useEffect(() => {
-    const checkHash = async () => {
+    const setupSession = async () => {
       try {
-        // Get the hash from the URL
-        const hash = window.location.hash;
-        if (!hash) {
+        const code = searchParams.get('code');
+        
+        if (!code) {
           setError('Invalid or expired password reset link. Please request a new one.');
           return;
         }
@@ -36,20 +37,27 @@ export default function ResetPasswordPage() {
         // Create Supabase client
         const supabase = createClient();
 
-        // Verify the hash is valid
-        const { data, error } = await supabase.auth.getUser();
-        if (error || !data.user) {
-          console.error('Error verifying reset token:', error);
-          setError('Invalid or expired password reset link. Please request a new one.');
+        // Exchange the code for a session
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        
+        if (exchangeError) {
+          console.error('Error exchanging code for session:', exchangeError);
+          throw exchangeError;
         }
-      } catch (error) {
-        console.error('Error checking hash:', error);
-        setError('An error occurred. Please try again later.');
+
+        if (!data.session) {
+          throw new Error('No session returned after code exchange');
+        }
+
+        console.log('Successfully established session for password reset');
+      } catch (error: any) {
+        console.error('Error setting up reset session:', error);
+        setError('Invalid or expired password reset link. Please request a new one.');
       }
     };
 
-    checkHash();
-  }, []);
+    setupSession();
+  }, [searchParams]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,9 +66,25 @@ export default function ResetPasswordPage() {
     setError('');
     
     try {
-      // Validate passwords
+      // Enhanced password validation
       if (password.length < 8) {
         throw new Error('Password must be at least 8 characters long');
+      }
+      
+      if (!/[A-Z]/.test(password)) {
+        throw new Error('Password must contain at least one uppercase letter');
+      }
+      
+      if (!/[a-z]/.test(password)) {
+        throw new Error('Password must contain at least one lowercase letter');
+      }
+      
+      if (!/[0-9]/.test(password)) {
+        throw new Error('Password must contain at least one number');
+      }
+      
+      if (!/[!@#$%^&*]/.test(password)) {
+        throw new Error('Password must contain at least one special character (!@#$%^&*)');
       }
       
       if (password !== confirmPassword) {
@@ -86,9 +110,13 @@ export default function ResetPasswordPage() {
       setSuccess(true);
       toast({
         title: "Password Updated",
-        description: "Your password has been successfully reset",
+        description: "Your password has been successfully reset. You will be redirected to the login page.",
         variant: "success",
       });
+      
+      // Clear sensitive data
+      setPassword('');
+      setConfirmPassword('');
       
       // Redirect to login after a delay
       setTimeout(() => {

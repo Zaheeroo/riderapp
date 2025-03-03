@@ -85,7 +85,7 @@ export async function middleware(request: NextRequest) {
 
     // Define protected paths and public paths
     const protectedPaths = ['/admin', '/driver', '/customer'];
-    const publicPaths = ['/', '/login', '/signup', '/error'];
+    const publicPaths = ['/', '/login', '/signup', '/error', '/forgot-password', '/reset-password'];
     const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path));
     const isPublicPath = publicPaths.includes(request.nextUrl.pathname);
 
@@ -101,7 +101,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    if (session && isPublicPath && request.nextUrl.pathname !== '/error') {
+    if (session && isPublicPath && request.nextUrl.pathname !== '/error' && 
+        request.nextUrl.pathname !== '/reset-password') {
       const userRole = session.user?.user_metadata?.user_type || 'customer';
       console.log('Authenticated user on public path - redirecting to dashboard:', userRole);
       return NextResponse.redirect(new URL(`/${userRole}`, request.url));

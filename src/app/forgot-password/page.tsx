@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { useAuth } from "../../../contexts";
+import { useState } from "react";
+import { createClient } from "../../../lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ForgotPasswordPage() {
@@ -15,14 +15,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const { resetPassword } = useAuth();
   const { toast } = useToast();
-
-  // Add a useEffect to log when the component mounts
-  useEffect(() => {
-    console.log('ForgotPasswordPage component mounted');
-    console.log('resetPassword function available:', !!resetPassword);
-  }, [resetPassword]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,20 +27,28 @@ export default function ForgotPasswordPage() {
     setSuccess(false);
     
     try {
-      // Validate email
-      if (!email || !email.includes('@')) {
+      // Validate email with a proper regex
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email)) {
         throw new Error('Please enter a valid email address');
       }
       
       console.log('Sending password reset email to:', email);
       
-      // Send password reset email using the AuthContext
-      const { error: resetError } = await resetPassword(email);
+      const supabase = createClient();
+      
+      // Send password reset email
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
       
       console.log('Password reset response received, error:', !!resetError);
       
       if (resetError) {
         console.error('Password reset error:', resetError);
+        if (resetError.message?.includes('User not found')) {
+          throw new Error('No account found with this email address');
+        }
         throw resetError;
       }
 
@@ -55,9 +56,12 @@ export default function ForgotPasswordPage() {
       setSuccess(true);
       toast({
         title: "Reset Email Sent",
-        description: "Check your email for a password reset link",
+        description: "If an account exists with this email, you will receive a password reset link",
         variant: "success",
       });
+      
+      // Clear the email field after success
+      setEmail('');
     } catch (error: any) {
       console.error('Password reset process error:', error);
       setError(error.message || 'Failed to send reset email. Please try again later.');
