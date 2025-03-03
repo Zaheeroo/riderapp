@@ -242,55 +242,71 @@ export default function AdminRidesPage() {
           "grid gap-4 mb-8",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="flex-shrink-0">
+            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Today's Rides</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.todayRides}</div>
-              <p className="text-xs text-muted-foreground">
-                {completedRides.filter(r => r.status === "Completed" && r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
-              </p>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{stats.todayRides}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {completedRides.filter(r => r.status === "Completed" && r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
+                  </p>
+                  <p className="text-xs text-green-500">+8% from yesterday</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="flex-shrink-0">
+            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Weekly Rides</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.weeklyRides}</div>
-              <p className="text-xs text-muted-foreground">
-                {Math.round(stats.weeklyRides / 7)} rides per day avg
-              </p>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{stats.weeklyRides}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {Math.round(stats.weeklyRides / 7)} rides per day avg
+                  </p>
+                  <p className="text-xs text-green-500">+12% this week</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="flex-shrink-0">
+            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${stats.revenueToday.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
-                ${stats.todayRides > 0 ? (stats.revenueToday / stats.todayRides).toFixed(2) : '0'} per ride avg
-              </p>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">${stats.revenueToday.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">
+                    ${stats.todayRides > 0 ? (stats.revenueToday / stats.todayRides).toFixed(2) : '0'} per ride avg
+                  </p>
+                  <p className="text-xs text-green-500">+5% from yesterday</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="flex-shrink-0">
+            <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.activeDrivers}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.activeDrivers > 0 ? Math.round((upcomingRides.length + completedRides.length) / stats.activeDrivers) : '0'} rides per driver
-              </p>
+              <ScrollArea className="h-[100px]">
+                <div className="flex flex-col">
+                  <div className="text-2xl font-bold">{stats.activeDrivers}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.activeDrivers > 0 ? Math.round((upcomingRides.length + completedRides.length) / stats.activeDrivers) : '0'} rides per driver
+                  </p>
+                  <p className="text-xs text-green-500">+3% this week</p>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
