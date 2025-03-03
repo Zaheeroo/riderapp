@@ -118,9 +118,6 @@ export default function CreateRidePage() {
     <DashboardLayout userType="admin">
       <div className="space-y-6">
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Create New Ride</h2>
         </div>
 
