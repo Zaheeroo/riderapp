@@ -242,59 +242,55 @@ export default function AdminRidesPage() {
           "grid gap-4 mb-8",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
-          <Card className="flex-shrink-0">
-            <CardHeader className="pb-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Today's Rides</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{stats.todayRides}</div>
-                <p className="text-xs text-muted-foreground">
-                  {completedRides.filter(r => r.status === "Completed" && r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
-                </p>
-              </div>
+              <div className="text-2xl font-bold">{stats.todayRides}</div>
+              <p className="text-xs text-muted-foreground">
+                {completedRides.filter(r => r.status === "Completed" && r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="flex-shrink-0">
-            <CardHeader className="pb-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Weekly Rides</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{stats.weeklyRides}</div>
-                <p className="text-xs text-muted-foreground">
-                  {Math.round(stats.weeklyRides / 7)} rides per day avg
-                </p>
-              </div>
+              <div className="text-2xl font-bold">{stats.weeklyRides}</div>
+              <p className="text-xs text-muted-foreground">
+                {Math.round(stats.weeklyRides / 7)} rides per day avg
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="flex-shrink-0">
-            <CardHeader className="pb-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">${stats.revenueToday.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">
-                  ${stats.todayRides > 0 ? (stats.revenueToday / stats.todayRides).toFixed(2) : '0'} per ride avg
-                </p>
-              </div>
+              <div className="text-2xl font-bold">${stats.revenueToday.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                ${stats.todayRides > 0 ? (stats.revenueToday / stats.todayRides).toFixed(2) : '0'} per ride avg
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="flex-shrink-0">
-            <CardHeader className="pb-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col">
-                <div className="text-2xl font-bold">{stats.activeDrivers}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.activeDrivers > 0 ? Math.round((upcomingRides.length + completedRides.length) / stats.activeDrivers) : '0'} rides per driver
-                </p>
-              </div>
+              <div className="text-2xl font-bold">{stats.activeDrivers}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.activeDrivers > 0 ? Math.round((upcomingRides.length + completedRides.length) / stats.activeDrivers) : '0'} rides per driver
+              </p>
             </CardContent>
           </Card>
         </div>
