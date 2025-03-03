@@ -284,7 +284,8 @@ export default function AdminDashboard() {
         throw new Error(data.error || 'Failed to fetch drivers');
       }
       
-      const data = await response.json();
+      const responseData = await response.json();
+      const data = responseData.data || [];
       
       // Add default values for any missing fields
       const processedDrivers = data.map((driver: any) => ({
@@ -327,7 +328,8 @@ export default function AdminDashboard() {
         throw new Error(data.error || 'Failed to fetch customers');
       }
       
-      const data = await response.json();
+      const responseData = await response.json();
+      const data = responseData.data || [];
       
       // Add default values for any missing fields
       const processedCustomers = data.map((customer: any) => ({

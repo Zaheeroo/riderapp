@@ -34,8 +34,8 @@ export async function GET(request: Request) {
       }
     }));
 
-    // Return data in the expected format with a 'data' property
-    return NextResponse.json({ data: customersWithPreferences });
+    // Return customers array directly
+    return NextResponse.json(customersWithPreferences);
   } catch (error: any) {
     console.error('Error fetching customers:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });

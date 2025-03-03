@@ -7,10 +7,11 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: { userId: string } }
 ) {
   try {
-    const userId = params.userId;
+    // Access userId from context.params
+    const userId = context.params.userId;
     
     if (!userId) {
       return NextResponse.json(
@@ -101,7 +102,7 @@ export async function GET(
         error: "An unexpected error occurred", 
         data: { 
           id: 1, 
-          user_id: params.userId,
+          user_id: context.params.userId,
           name: "Sample Customer",
           email: "sample@example.com",
           phone: "123-456-7890",

@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "../../../../contexts/NotificationContext";
+import { useAuth } from "../../../../contexts";
 
 // Custom hook for device detection
 function useDeviceType() {
@@ -80,6 +81,7 @@ export default function ContactRequestsPage() {
   const [adminNotes, setAdminNotes] = useState('');
   const [processingAction, setProcessingAction] = useState(false);
   const previousRequestCountRef = useRef(0);
+  const { user } = useAuth();
 
   // Fetch contact requests
   const fetchContactRequests = async () => {
@@ -153,7 +155,7 @@ export default function ContactRequestsPage() {
   useEffect(() => {
     // Fetch contact requests immediately
     fetchContactRequests();
-  }, []);
+  }, [user]);
 
   // Filter contact requests based on search term
   const filteredRequests = contactRequests.filter(request => 

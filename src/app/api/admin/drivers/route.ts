@@ -24,8 +24,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Return data in the expected format with a 'data' property
-    return NextResponse.json({ data: drivers });
+    // Return drivers array directly
+    return NextResponse.json(drivers);
   } catch (error: any) {
     console.error('Error fetching drivers:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
