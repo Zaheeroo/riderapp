@@ -35,4 +35,69 @@ export async function GET(request: NextRequest) {
     console.error('Unexpected error:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
+}
+
+// POST to create a new ride
+export async function POST(request: NextRequest) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase credentials');
+    return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
+  }
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const body = await request.json();
+    
+    // Validate required fields
+    const requiredFields = ['customer_id', 'pickup_location', 'dropoff_location', 'pickup_date', 'pickup_time', 'price', 'status'];
+    for (const field of requiredFields) {
+      if (!body[field]) {
+        return NextResponse.json({ error: `${field} is required` }, { status: 400 });
+      }
+    }
+    
+    // Create the ride
+    const { data, error } = await supabase
+      .from('rides')
+      .insert([{
+        customer_id: body.customer_id,
+        driver_id: body.driver_id || null, // Driver can be optional
+        pickup_location: body.pickup_location,
+        dropoff_location: body.dropoff_location,
+        pickup_date: body.pickup_date,
+        pickup_time: body.pickup_time,
+        price: body.price,
+        status: body.status,
+        created_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating ride:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Get the complete ride data with customer and driver information
+    const { data: rideWithRelations, error: fetchError } = await supabase
+      .from('rides')
+      .select(`
+        *,
+        customer:customers(*),
+        driver:drivers(*)
+      `)
+      .eq('id', data.id)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching created ride:', fetchError);
+      // Still return the created ride even if we couldn't fetch the relations
+      return NextResponse.json({ data });
+    }
+
+    return NextResponse.json({ data: rideWithRelations });
+  } catch (error: any) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+  }
 } 
