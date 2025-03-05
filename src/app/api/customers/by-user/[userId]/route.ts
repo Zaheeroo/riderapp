@@ -44,7 +44,8 @@ export async function GET(
       return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
     }
     
-    return NextResponse.json(customer);
+    // Return the data in the expected format
+    return NextResponse.json({ data: customer });
   } catch (error: any) {
     console.error('Error fetching customer:', error);
     return NextResponse.json(
