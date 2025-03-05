@@ -48,4 +48,52 @@ export async function GET(
     console.error('Unexpected error:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
+}
+
+// PATCH to update a ride
+export async function PATCH(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const id = context.params.id;
+
+  if (!id) {
+    return NextResponse.json({ error: 'Ride ID is required' }, { status: 400 });
+  }
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('Missing Supabase credentials');
+    return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
+  }
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const updates = await request.json();
+    
+    // Update the ride
+    const { data, error } = await supabase
+      .from('rides')
+      .update(updates)
+      .eq('id', id)
+      .select(`
+        *,
+        customer:customers(*),
+        driver:drivers(*)
+      `)
+      .single();
+
+    if (error) {
+      console.error('Error updating ride:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: 'Ride not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ data });
+  } catch (error: any) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+  }
 } 
