@@ -278,22 +278,31 @@ export const RideService = {
   async updateRideStatus(rideId: number, status: string) {
     try {
       if (!isValidSupabaseClient(supabaseClient)) {
-        console.warn('Using dummy client for updateRideStatus');
-        return { data: null, error: null };
+        throw new Error('Invalid Supabase client configuration');
       }
-      
-      const { data, error } = await supabaseClient
-        .from('rides')
-        .update({ status })
-        .eq('id', rideId)
-        .select()
-        .single();
 
-      if (error) throw error;
-      return { data, error: null };
-    } catch (error) {
-      console.error('Error updating ride status:', error);
-      return { data: null, error };
+      const response = await fetch('/api/driver/rides/update', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rideId,
+          driverId: supabaseClient.auth.user()?.id,
+          updates: { status }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update ride status');
+      }
+
+      const data = await response.json();
+      return { data: data.data, error: null };
+    } catch (error: any) {
+      console.error('Error in updateRideStatus:', error);
+      return { data: null, error: error.message || 'Failed to update ride status' };
     }
   },
 

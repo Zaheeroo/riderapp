@@ -4,6 +4,9 @@ import { NextRequest, NextResponse } from 'next/server';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Define valid status transitions for drivers
+const validDriverStatuses = ['Confirmed', 'In Progress', 'Completed'];
+
 // PATCH to update ride details by driver
 export async function PATCH(request: NextRequest) {
   if (!supabaseUrl || !supabaseServiceKey) {
@@ -39,8 +42,23 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Cannot update completed or cancelled rides' }, { status: 400 });
     }
 
+    // If status is being updated, validate it
+    if (updates.status) {
+      if (!validDriverStatuses.includes(updates.status)) {
+        return NextResponse.json({ error: 'Invalid status value for driver' }, { status: 400 });
+      }
+
+      // Validate status transitions
+      if (ride.status === 'Pending' && updates.status !== 'Confirmed') {
+        return NextResponse.json({ error: 'Can only confirm pending rides' }, { status: 400 });
+      }
+      if (ride.status === 'Confirmed' && updates.status === 'Completed') {
+        return NextResponse.json({ error: 'Cannot complete a ride without starting it' }, { status: 400 });
+      }
+    }
+
     // Filter updates to only allow specific fields
-    const allowedFields = ['current_location', 'estimated_arrival_time', 'driver_notes'];
+    const allowedFields = ['current_location', 'estimated_arrival_time', 'driver_notes', 'status'];
     const filteredUpdates: any = {};
     
     for (const field of allowedFields) {

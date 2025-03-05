@@ -681,6 +681,64 @@ export default function AdminRidesPage() {
                                   View Details
                                 </Link>
                               </Button>
+                              <div className="mt-4 flex justify-end space-x-2">
+                                <Button variant="outline" size="sm" onClick={() => handleCancelClick(ride)}>
+                                  Cancel Ride
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleEditClick(ride)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Select
+                                  value={ride.status}
+                                  onValueChange={async (value) => {
+                                    try {
+                                      const response = await fetch('/api/admin/rides/update-status', {
+                                        method: 'PATCH',
+                                        headers: {
+                                          'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({ rideId: ride.id, status: value }),
+                                      });
+                                      
+                                      if (!response.ok) {
+                                        const errorData = await response.json();
+                                        throw new Error(errorData.error || 'Failed to update status');
+                                      }
+                                      
+                                      const { data } = await response.json();
+                                      
+                                      // Update local state
+                                      setUpcomingRides(prev => prev.map(r => 
+                                        r.id === ride.id ? data : r
+                                      ));
+                                      
+                                      toast({
+                                        title: "Success",
+                                        description: `Ride status updated to ${value}`,
+                                        variant: "success",
+                                      });
+                                    } catch (error: any) {
+                                      console.error('Error updating status:', error);
+                                      toast({
+                                        title: "Error",
+                                        description: error.message || "Failed to update status",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-[140px]">
+                                    <SelectValue placeholder="Change Status" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="Confirmed">Confirmed</SelectItem>
+                                    <SelectItem value="In Progress">In Progress</SelectItem>
+                                    <SelectItem value="Completed">Completed</SelectItem>
+                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                           </CardContent>
                         </Card>

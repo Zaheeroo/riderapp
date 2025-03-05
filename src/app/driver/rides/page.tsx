@@ -59,14 +59,34 @@ export default function DriverRidesPage() {
   // Function to handle status change
   const handleStatusChange = async (rideId: number, newStatus: RideStatus) => {
     try {
+      // Optimistically update the UI
       setRideStatuses(prev => ({
         ...prev,
         [rideId]: newStatus
       }));
       
-      const { data, error } = await RideService.updateRideStatus(rideId, newStatus);
-      
-      if (error) throw error;
+      if (!driverData?.id) {
+        throw new Error('Driver ID not found');
+      }
+
+      const response = await fetch('/api/driver/rides/update', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rideId,
+          driverId: driverData.id,
+          updates: { status: newStatus }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update ride status');
+      }
+
+      const { data } = await response.json();
       
       toast({
         title: "Success",
@@ -74,7 +94,7 @@ export default function DriverRidesPage() {
         variant: "success",
       });
       
-      // If the ride is completed, move it from upcoming to completed
+      // Update the rides lists
       if (newStatus === 'Completed') {
         const ride = upcomingRides.find(r => r.id === rideId);
         if (ride) {
@@ -82,11 +102,11 @@ export default function DriverRidesPage() {
           setCompletedRides(prev => [...prev, { ...ride, status: newStatus }]);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating ride status:', error);
       toast({
         title: "Error",
-        description: "Failed to update ride status",
+        description: error?.message || "Failed to update ride status",
         variant: "destructive",
       });
       
@@ -181,55 +201,14 @@ export default function DriverRidesPage() {
       setError(null);
       try {
         // First, get the driver profile for the current user
-        console.log('Fetching driver profile for user:', user.id);
         const driverResponse = await fetch(`/api/drivers/by-user/${user.id}`);
-        console.log('Driver response status:', driverResponse.status);
-        console.log('Driver response headers:', driverResponse.headers);
-        
-        // Get the raw response text first
-        const rawText = await driverResponse.text();
-        console.log('Raw response text:', rawText);
-        
-        // Try to parse it as JSON
-        let driverResult;
-        try {
-          driverResult = JSON.parse(rawText);
-        } catch (e) {
-          console.error('Failed to parse response as JSON:', e);
-          throw new Error('Invalid JSON response from server');
-        }
         
         if (!driverResponse.ok) {
-          if (driverResponse.status === 404) {
-            // Check specific error messages to determine the exact issue
-            if (driverResult.error?.includes("authentication system")) {
-              setError({
-                title: "Authentication Error",
-                description: "Your user account was not found. Please try signing out and signing in again."
-              });
-            } else if (driverResult.error?.includes("profile setup")) {
-              setError({
-                title: "Profile Incomplete",
-                description: "Please complete your user profile before registering as a driver."
-              });
-            } else {
-              setError({
-                title: "Driver Profile Required",
-                description: "You need to complete your driver registration to access this page."
-              });
-            }
-            setLoading(false);
-            return;
-          } else if (driverResponse.status === 403) {
-            setError({
-              title: "Access Denied",
-              description: "You are not authorized as a driver. Please complete your driver registration."
-            });
-            setLoading(false);
-            return;
-          }
-          throw new Error(driverResult.error || 'Failed to fetch driver profile');
+          const errorData = await driverResponse.json();
+          throw new Error(errorData.error || 'Failed to fetch driver profile');
         }
+        
+        const driverResult = await driverResponse.json();
         
         if (!driverResult.data) {
           setError({
@@ -240,17 +219,21 @@ export default function DriverRidesPage() {
           return;
         }
         
-        console.log('Driver profile:', driverResult.data);
         setDriverData(driverResult.data);
         
         // Then, get the rides for this driver
         const ridesResponse = await fetch(`/api/driver/rides?driverId=${driverResult.data.id}`);
         if (!ridesResponse.ok) {
-          const errorData = await ridesResponse.json();
-          throw new Error(errorData.error || 'Failed to fetch rides');
+          throw new Error('Failed to fetch rides');
         }
         
         const ridesResult = await ridesResponse.json();
+        
+        if (!ridesResult.data) {
+          setUpcomingRides([]);
+          setCompletedRides([]);
+          return;
+        }
         
         // Split rides into upcoming and completed
         const today = new Date();
@@ -260,7 +243,7 @@ export default function DriverRidesPage() {
         let todayRidesCount = 0;
         let todayEarnings = 0;
         
-        for (const ride of ridesResult.data || []) {
+        for (const ride of ridesResult.data) {
           // Initialize ride statuses
           setRideStatuses(prev => ({
             ...prev,
@@ -462,10 +445,12 @@ export default function DriverRidesPage() {
                                 <Phone className="mr-1 h-3 w-3" />
                                 {ride.customer?.phone || 'No phone'}
                               </div>
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
-                                {ride.customer?.rating || '4.8'}
-                              </div>
+                              {ride.customer?.rating && (
+                                <div className="flex items-center text-xs text-muted-foreground">
+                                  <Star className="mr-1 h-3 w-3 fill-yellow-500 text-yellow-500" />
+                                  {ride.customer.rating}
+                                </div>
+                              )}
                             </div>
                             <div className="text-right">
                               <Badge variant={
@@ -507,9 +492,19 @@ export default function DriverRidesPage() {
                             <SelectValue placeholder="Change Status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Confirmed">Confirmed</SelectItem>
-                            <SelectItem value="In Progress">Start Ride</SelectItem>
-                            <SelectItem value="Completed">Complete Ride</SelectItem>
+                            {(ride.status === 'Pending' || ride.status === 'Confirmed' || ride.status === 'In Progress') && (
+                              <>
+                                {ride.status === 'Pending' && (
+                                  <SelectItem value="Confirmed">Confirm Ride</SelectItem>
+                                )}
+                                {ride.status === 'Confirmed' && (
+                                  <SelectItem value="In Progress">Start Ride</SelectItem>
+                                )}
+                                {ride.status === 'In Progress' && (
+                                  <SelectItem value="Completed">Complete Ride</SelectItem>
+                                )}
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
