@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 // Add MapPinned icon as a custom component since it's not available in lucide-react
 const MapPinned = (props: any) => (
@@ -51,7 +52,7 @@ export default function AdminRidesPage() {
   const [upcomingRides, setUpcomingRides] = useState<any[]>([]);
   const [completedRides, setCompletedRides] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ title: string; description: string } | null>(null);
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedRide, setSelectedRide] = useState<any>(null);
@@ -148,7 +149,7 @@ export default function AdminRidesPage() {
         });
       } catch (error: any) {
         console.error('Error fetching rides:', error);
-        setError(error.message || 'Failed to load rides');
+        setError({ title: 'Error', description: error.message || 'Failed to load rides' });
       } finally {
         setIsLoading(false);
       }
@@ -315,7 +316,9 @@ export default function AdminRidesPage() {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Rides Management</h2>
-            <p className="text-muted-foreground">View and manage all customer rides</p>
+            <p className="text-muted-foreground">
+              View and manage all customer rides
+            </p>
           </div>
           <Button asChild>
             <Link href="/admin/rides/new">
@@ -327,7 +330,7 @@ export default function AdminRidesPage() {
 
         {/* Stats Overview */}
         <div className={cn(
-          "grid gap-4 mb-8",
+          "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-4"
         )}>
           <Card className="flex-shrink-0">
@@ -335,18 +338,28 @@ export default function AdminRidesPage() {
               <CardTitle className="text-sm font-medium">Today's Rides</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className={cn(
-                "h-[calc(100vh-40rem)]",
-                "min-h-[100px]"
-              )}>
+              {isMobile ? (
+                <ScrollArea className={cn(
+                  "h-[calc(100vh-40rem)]",
+                  "min-h-[100px]"
+                )}>
+                  <div className="flex flex-col">
+                    <div className="text-2xl font-bold">{stats.todayRides}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {completedRides.filter(r => r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
+                    </p>
+                    <p className="text-xs text-green-500">+2 from yesterday</p>
+                  </div>
+                </ScrollArea>
+              ) : (
                 <div className="flex flex-col">
                   <div className="text-2xl font-bold">{stats.todayRides}</div>
                   <p className="text-xs text-muted-foreground">
-                    {completedRides.filter(r => r.status === "Completed" && r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
+                    {completedRides.filter(r => r.pickup_date === new Date().toISOString().split('T')[0]).length} completed
                   </p>
-                  <p className="text-xs text-green-500">+8% from yesterday</p>
+                  <p className="text-xs text-green-500">+2 from yesterday</p>
                 </div>
-              </ScrollArea>
+              )}
             </CardContent>
           </Card>
 
@@ -438,18 +451,17 @@ export default function AdminRidesPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
+          <Card>
+            <CardContent className="flex justify-center items-center h-60">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </CardContent>
+          </Card>
         ) : error ? (
           <Card>
-            <CardContent className="p-6">
-              <div className="text-center py-8 text-destructive">
-                <p>{error}</p>
-                <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-                  Try Again
-                </Button>
-              </div>
+            <CardContent className="flex flex-col items-center justify-center h-60 text-center">
+              <AlertCircle className="h-8 w-8 text-destructive mb-4" />
+              <h3 className="font-semibold text-lg">{error.title}</h3>
+              <p className="text-muted-foreground">{error.description}</p>
             </CardContent>
           </Card>
         ) : (
@@ -461,169 +473,325 @@ export default function AdminRidesPage() {
                 <CardDescription>Manage your scheduled rides</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className={cn(
-                  "h-[calc(100vh-20rem)]",
-                  "min-h-[300px]",
-                  "max-h-[500px]"
-                )}>
-                  {filteredUpcomingRides.length === 0 ? (
-                    <div className="flex justify-center items-center h-40 text-muted-foreground">
-                      No upcoming rides found
-                    </div>
-                  ) : (
-                    <div className="divide-y">
-                      {filteredUpcomingRides.map((ride) => (
-                        <div key={ride.id} className="p-6">
-                          <div className="flex flex-col space-y-6">
-                            {/* Header - Status, Trip Type, and Price */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Badge variant={ride.status === "Confirmed" ? "default" : "secondary"}>
-                                  {ride.status}
-                                </Badge>
-                                <Badge variant="outline">{ride.trip_type}</Badge>
-                              </div>
-                              <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
-                                <span className="text-green-600">$</span>
-                                <span className="text-lg font-semibold text-green-600">
-                                  {parseFloat(ride.price).toFixed(2)}
-                                </span>
+                {upcomingRides.length === 0 ? (
+                  <div className="flex justify-center items-center h-40 text-muted-foreground">
+                    No upcoming rides found
+                  </div>
+                ) : (
+                  <>
+                    {isMobile ? (
+                      <ScrollArea className={cn(
+                        "h-[calc(100vh-20rem)]",
+                        "min-h-[300px]",
+                        "max-h-[500px]"
+                      )}>
+                        <div className="divide-y">
+                          {filteredUpcomingRides.map((ride) => (
+                            <div key={ride.id} className="p-6">
+                              <div className="flex flex-col space-y-6">
+                                {/* Header - Status, Trip Type, and Price */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant={ride.status === "Confirmed" ? "default" : "secondary"}>
+                                      {ride.status}
+                                    </Badge>
+                                    <Badge variant="outline">{ride.trip_type}</Badge>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
+                                    <span className="text-green-600">$</span>
+                                    <span className="text-lg font-semibold text-green-600">
+                                      {parseFloat(ride.price).toFixed(2)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Main Content Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  {/* Left Column - Customer and Trip Info */}
+                                  <div className="space-y-6">
+                                    {/* Customer Information */}
+                                    <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
+                                      <Avatar className="h-12 w-12">
+                                        <AvatarFallback className="bg-primary/10">
+                                          {ride.customer?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'C'}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="space-y-1">
+                                        <p className="font-semibold text-lg">{ride.customer?.name || 'Unknown Customer'}</p>
+                                        <div className="flex items-center gap-4">
+                                          <div className="flex items-center text-sm text-muted-foreground">
+                                            <Phone className="mr-1 h-4 w-4" />
+                                            {ride.customer?.phone || 'No phone'}
+                                          </div>
+                                          <div className="flex items-center text-sm text-muted-foreground">
+                                            <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                            {ride.customer?.rating || '4.8'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Locations */}
+                                    <div className="space-y-4">
+                                      <div className="relative pl-8">
+                                        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
+                                        <div className="space-y-4">
+                                          <div className="relative">
+                                            <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                            <div>
+                                              <p className="font-medium">Pickup Location</p>
+                                              <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
+                                              {ride.pickup_notes && (
+                                                <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="relative">
+                                            <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                            <div>
+                                              <p className="font-medium">Dropoff Location</p>
+                                              <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
+                                              {ride.dropoff_notes && (
+                                                <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Right Column - Additional Details */}
+                                  <div className="space-y-6">
+                                    {/* Date and Time */}
+                                    <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                                      <div className="flex items-center gap-3">
+                                        <Calendar className="h-5 w-5 text-primary" />
+                                        <div>
+                                          <p className="font-medium">Pickup Date</p>
+                                          <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        <Clock className="h-5 w-5 text-primary" />
+                                        <div>
+                                          <p className="font-medium">Pickup Time</p>
+                                          <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Ride Details */}
+                                    <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
+                                      <div>
+                                        <p className="font-medium">Vehicle Type</p>
+                                        <p className="text-sm text-muted-foreground">{ride.vehicle_type || 'Standard'}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Passengers</p>
+                                        <p className="text-sm text-muted-foreground">{ride.passengers || '1'}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Payment Status</p>
+                                        <p className="text-sm text-muted-foreground">{ride.payment_status || 'Pending'}</p>
+                                      </div>
+                                      {ride.distance && (
+                                        <div>
+                                          <p className="font-medium">Distance</p>
+                                          <p className="text-sm text-muted-foreground">{ride.distance}</p>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Special Requirements */}
+                                    {ride.special_requirements && (
+                                      <div className="bg-muted/30 rounded-lg p-4">
+                                        <div className="flex items-start gap-2">
+                                          <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                          <div>
+                                            <p className="font-medium">Special Requirements</p>
+                                            <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex justify-end gap-2 pt-2 border-t">
+                                  <Button variant="outline" size="sm" asChild>
+                                    <Link href={`/admin/rides/${ride.id}`}>View Details</Link>
+                                  </Button>
+                                  <Button variant="outline" size="sm" onClick={() => handleEditClick(ride)}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </Button>
+                                  <Button variant="destructive" size="sm" onClick={() => handleCancelClick(ride)}>
+                                    <X className="h-4 w-4 mr-2" />
+                                    Cancel
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-
-                            {/* Main Content Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              {/* Left Column - Customer and Trip Info */}
-                              <div className="space-y-6">
-                                {/* Customer Information */}
-                                <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
-                                  <Avatar className="h-12 w-12">
-                                    <AvatarFallback className="bg-primary/10">
-                                      {ride.customer?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'C'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="space-y-1">
-                                    <p className="font-semibold text-lg">{ride.customer?.name || 'Unknown Customer'}</p>
-                                    <div className="flex items-center gap-4">
-                                      <div className="flex items-center text-sm text-muted-foreground">
-                                        <Phone className="mr-1 h-4 w-4" />
-                                        {ride.customer?.phone || 'No phone'}
-                                      </div>
-                                      <div className="flex items-center text-sm text-muted-foreground">
-                                        <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
-                                        {ride.customer?.rating || '4.8'}
-                                      </div>
-                                    </div>
-                                  </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    ) : (
+                      <div className="divide-y">
+                        {filteredUpcomingRides.map((ride) => (
+                          <div key={ride.id} className="p-6">
+                            <div className="flex flex-col space-y-6">
+                              {/* Header - Status, Trip Type, and Price */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={ride.status === "Confirmed" ? "default" : "secondary"}>
+                                    {ride.status}
+                                  </Badge>
+                                  <Badge variant="outline">{ride.trip_type}</Badge>
                                 </div>
-
-                                {/* Locations */}
-                                <div className="space-y-4">
-                                  <div className="relative pl-8">
-                                    <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
-                                    <div className="space-y-4">
-                                      <div className="relative">
-                                        <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
-                                        <div>
-                                          <p className="font-medium">Pickup Location</p>
-                                          <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
-                                          {ride.pickup_notes && (
-                                            <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="relative">
-                                        <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
-                                        <div>
-                                          <p className="font-medium">Dropoff Location</p>
-                                          <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
-                                          {ride.dropoff_notes && (
-                                            <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
+                                <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
+                                  <span className="text-green-600">$</span>
+                                  <span className="text-lg font-semibold text-green-600">
+                                    {parseFloat(ride.price).toFixed(2)}
+                                  </span>
                                 </div>
                               </div>
 
-                              {/* Right Column - Additional Details */}
-                              <div className="space-y-6">
-                                {/* Date and Time */}
-                                <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-                                  <div className="flex items-center gap-3">
-                                    <Calendar className="h-5 w-5 text-primary" />
-                                    <div>
-                                      <p className="font-medium">Pickup Date</p>
-                                      <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                              {/* Main Content Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left Column - Customer and Trip Info */}
+                                <div className="space-y-6">
+                                  {/* Customer Information */}
+                                  <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
+                                    <Avatar className="h-12 w-12">
+                                      <AvatarFallback className="bg-primary/10">
+                                        {ride.customer?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'C'}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="space-y-1">
+                                      <p className="font-semibold text-lg">{ride.customer?.name || 'Unknown Customer'}</p>
+                                      <div className="flex items-center gap-4">
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                          <Phone className="mr-1 h-4 w-4" />
+                                          {ride.customer?.phone || 'No phone'}
+                                        </div>
+                                        <div className="flex items-center text-sm text-muted-foreground">
+                                          <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                          {ride.customer?.rating || '4.8'}
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-3">
-                                    <Clock className="h-5 w-5 text-primary" />
-                                    <div>
-                                      <p className="font-medium">Pickup Time</p>
-                                      <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
+
+                                  {/* Locations */}
+                                  <div className="space-y-4">
+                                    <div className="relative pl-8">
+                                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
+                                      <div className="space-y-4">
+                                        <div className="relative">
+                                          <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                          <div>
+                                            <p className="font-medium">Pickup Location</p>
+                                            <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
+                                            {ride.pickup_notes && (
+                                              <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="relative">
+                                          <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                          <div>
+                                            <p className="font-medium">Dropoff Location</p>
+                                            <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
+                                            {ride.dropoff_notes && (
+                                              <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
 
-                                {/* Ride Details */}
-                                <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
-                                  <div>
-                                    <p className="font-medium">Vehicle Type</p>
-                                    <p className="text-sm text-muted-foreground">{ride.vehicle_type || 'Standard'}</p>
+                                {/* Right Column - Additional Details */}
+                                <div className="space-y-6">
+                                  {/* Date and Time */}
+                                  <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                                    <div className="flex items-center gap-3">
+                                      <Calendar className="h-5 w-5 text-primary" />
+                                      <div>
+                                        <p className="font-medium">Pickup Date</p>
+                                        <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <Clock className="h-5 w-5 text-primary" />
+                                      <div>
+                                        <p className="font-medium">Pickup Time</p>
+                                        <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="font-medium">Passengers</p>
-                                    <p className="text-sm text-muted-foreground">{ride.passengers || '1'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="font-medium">Payment Status</p>
-                                    <p className="text-sm text-muted-foreground">{ride.payment_status || 'Pending'}</p>
-                                  </div>
-                                  {ride.distance && (
+
+                                  {/* Ride Details */}
+                                  <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
                                     <div>
-                                      <p className="font-medium">Distance</p>
-                                      <p className="text-sm text-muted-foreground">{ride.distance}</p>
+                                      <p className="font-medium">Vehicle Type</p>
+                                      <p className="text-sm text-muted-foreground">{ride.vehicle_type || 'Standard'}</p>
+                                    </div>
+                                    <div>
+                                      <p className="font-medium">Passengers</p>
+                                      <p className="text-sm text-muted-foreground">{ride.passengers || '1'}</p>
+                                    </div>
+                                    <div>
+                                      <p className="font-medium">Payment Status</p>
+                                      <p className="text-sm text-muted-foreground">{ride.payment_status || 'Pending'}</p>
+                                    </div>
+                                    {ride.distance && (
+                                      <div>
+                                        <p className="font-medium">Distance</p>
+                                        <p className="text-sm text-muted-foreground">{ride.distance}</p>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Special Requirements */}
+                                  {ride.special_requirements && (
+                                    <div className="bg-muted/30 rounded-lg p-4">
+                                      <div className="flex items-start gap-2">
+                                        <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                        <div>
+                                          <p className="font-medium">Special Requirements</p>
+                                          <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
+                                        </div>
+                                      </div>
                                     </div>
                                   )}
                                 </div>
+                              </div>
 
-                                {/* Special Requirements */}
-                                {ride.special_requirements && (
-                                  <div className="bg-muted/30 rounded-lg p-4">
-                                    <div className="flex items-start gap-2">
-                                      <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                                      <div>
-                                        <p className="font-medium">Special Requirements</p>
-                                        <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
+                              {/* Action Buttons */}
+                              <div className="flex justify-end gap-2 pt-2 border-t">
+                                <Button variant="outline" size="sm" asChild>
+                                  <Link href={`/admin/rides/${ride.id}`}>View Details</Link>
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleEditClick(ride)}>
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Edit
+                                </Button>
+                                <Button variant="destructive" size="sm" onClick={() => handleCancelClick(ride)}>
+                                  <X className="h-4 w-4 mr-2" />
+                                  Cancel
+                                </Button>
                               </div>
                             </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex justify-end gap-2 pt-2 border-t">
-                              <Button variant="outline" size="sm" asChild>
-                                <Link href={`/admin/rides/${ride.id}`}>View Details</Link>
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleEditClick(ride)}>
-                                <Pencil className="h-4 w-4 mr-2" />
-                                Edit
-                              </Button>
-                              <Button variant="destructive" size="sm" onClick={() => handleCancelClick(ride)}>
-                                <X className="h-4 w-4 mr-2" />
-                                Cancel
-                              </Button>
-                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -868,7 +1036,7 @@ export default function AdminRidesPage() {
             
             {error && (
               <div className="mb-4 p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md">
-                {error}
+                {error.description}
               </div>
             )}
             

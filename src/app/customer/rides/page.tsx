@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 // Add MapPinned icon as a custom component since it's not available in lucide-react
 const MapPinned = (props: any) => (
@@ -62,6 +63,7 @@ export default function CustomerRidesPage() {
     passengers: "",
     special_requirements: "",
   });
+  const { isMobile } = useDeviceType();
 
   useEffect(() => {
     // Only fetch data if we have a user
@@ -316,174 +318,341 @@ export default function CustomerRidesPage() {
                     </div>
                   </div>
                 ) : (
-                  <ScrollArea className={cn(
-                    "h-[calc(100vh-20rem)]",
-                    "min-h-[300px]",
-                    "max-h-[500px]"
-                  )}>
-                    <div className="divide-y">
-                      {upcomingRides.map((ride) => (
-                        <div key={ride.id} className="p-6">
-                          <div className="flex flex-col space-y-6">
-                            {/* Header - Status, Trip Type, and Price */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Badge variant={ride.status === "Confirmed" ? "default" : "secondary"}>
-                                  {ride.status}
-                                </Badge>
-                                <Badge variant="outline">{ride.trip_type}</Badge>
-                              </div>
-                              <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
-                                <span className="text-green-600">$</span>
-                                <span className="text-lg font-semibold text-green-600">
-                                  {parseFloat(ride.price).toFixed(2)}
-                                </span>
-                              </div>
-                            </div>
+                  <>
+                    {isMobile ? (
+                      <ScrollArea className={cn(
+                        "h-[calc(100vh-20rem)]",
+                        "min-h-[300px]",
+                        "max-h-[500px]"
+                      )}>
+                        <div className="divide-y">
+                          {upcomingRides.map((ride) => (
+                            <div key={ride.id} className="p-6">
+                              <div className="flex flex-col space-y-6">
+                                {/* Header - Status, Trip Type, and Price */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant={ride.status === "Confirmed" ? "default" : "secondary"}>
+                                      {ride.status}
+                                    </Badge>
+                                    <Badge variant="outline">{ride.trip_type}</Badge>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
+                                    <span className="text-green-600">$</span>
+                                    <span className="text-lg font-semibold text-green-600">
+                                      {parseFloat(ride.price).toFixed(2)}
+                                    </span>
+                                  </div>
+                                </div>
 
-                            {/* Main Content Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              {/* Left Column - Driver and Trip Info */}
-                              <div className="space-y-6">
-                                {/* Driver Information */}
-                                {ride.driver && (
-                                  <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
-                                    <Avatar className="h-12 w-12">
-                                      <AvatarFallback className="bg-primary/10">
-                                        {ride.driver?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'D'}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="space-y-1">
-                                      <p className="font-semibold text-lg">{ride.driver?.name || 'Driver not assigned yet'}</p>
-                                      <div className="flex items-center gap-4">
-                                        <div className="flex items-center text-sm text-muted-foreground">
-                                          <Phone className="mr-1 h-4 w-4" />
-                                          {ride.driver?.phone || 'No phone'}
-                                        </div>
-                                        <div className="flex items-center text-sm text-muted-foreground">
-                                          <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
-                                          {ride.driver?.rating || '4.8'}
+                                {/* Main Content Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  {/* Left Column - Driver and Trip Info */}
+                                  <div className="space-y-6">
+                                    {/* Driver Information */}
+                                    {ride.driver && (
+                                      <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
+                                        <Avatar className="h-12 w-12">
+                                          <AvatarFallback className="bg-primary/10">
+                                            {ride.driver?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'D'}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <div className="space-y-1">
+                                          <p className="font-semibold text-lg">{ride.driver?.name || 'Driver not assigned yet'}</p>
+                                          <div className="flex items-center gap-4">
+                                            <div className="flex items-center text-sm text-muted-foreground">
+                                              <Phone className="mr-1 h-4 w-4" />
+                                              {ride.driver?.phone || 'No phone'}
+                                            </div>
+                                            <div className="flex items-center text-sm text-muted-foreground">
+                                              <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                              {ride.driver?.rating || '4.8'}
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </div>
-                                )}
+                                    )}
 
-                                {/* Locations */}
-                                <div className="space-y-4">
-                                  <div className="relative pl-8">
-                                    <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
+                                    {/* Locations */}
                                     <div className="space-y-4">
-                                      <div className="relative">
-                                        <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
-                                        <div>
-                                          <p className="font-medium">Pickup Location</p>
-                                          <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
-                                          {ride.pickup_notes && (
-                                            <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
-                                          )}
+                                      <div className="relative pl-8">
+                                        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
+                                        <div className="space-y-4">
+                                          <div className="relative">
+                                            <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                            <div>
+                                              <p className="font-medium">Pickup Location</p>
+                                              <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
+                                              {ride.pickup_notes && (
+                                                <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="relative">
+                                            <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                            <div>
+                                              <p className="font-medium">Dropoff Location</p>
+                                              <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
+                                              {ride.dropoff_notes && (
+                                                <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
+                                              )}
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                      <div className="relative">
-                                        <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                    </div>
+                                  </div>
+
+                                  {/* Right Column - Additional Details */}
+                                  <div className="space-y-6">
+                                    {/* Date and Time */}
+                                    <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                                      <div className="flex items-center gap-3">
+                                        <Calendar className="h-5 w-5 text-primary" />
                                         <div>
-                                          <p className="font-medium">Dropoff Location</p>
-                                          <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
-                                          {ride.dropoff_notes && (
-                                            <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
-                                          )}
+                                          <p className="font-medium">Pickup Date</p>
+                                          <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        <Clock className="h-5 w-5 text-primary" />
+                                        <div>
+                                          <p className="font-medium">Pickup Time</p>
+                                          <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
                                         </div>
                                       </div>
                                     </div>
-                                  </div>
-                                </div>
-                              </div>
 
-                              {/* Right Column - Additional Details */}
-                              <div className="space-y-6">
-                                {/* Date and Time */}
-                                <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-                                  <div className="flex items-center gap-3">
-                                    <Calendar className="h-5 w-5 text-primary" />
-                                    <div>
-                                      <p className="font-medium">Pickup Date</p>
-                                      <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <Clock className="h-5 w-5 text-primary" />
-                                    <div>
-                                      <p className="font-medium">Pickup Time</p>
-                                      <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Vehicle Details */}
-                                {ride.driver && (
-                                  <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
-                                    <div>
-                                      <p className="font-medium">Vehicle</p>
-                                      <p className="text-sm text-muted-foreground">
-                                        {ride.driver.vehicle_model} - {ride.driver.vehicle_color}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <p className="font-medium">Plate</p>
-                                      <p className="text-sm text-muted-foreground">{ride.driver.vehicle_plate}</p>
-                                    </div>
-                                    <div>
-                                      <p className="font-medium">Payment Status</p>
-                                      <p className="text-sm text-muted-foreground">{ride.payment_status}</p>
-                                    </div>
-                                    <div>
-                                      <p className="font-medium">Passengers</p>
-                                      <p className="text-sm text-muted-foreground">{ride.passengers}</p>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Special Requirements */}
-                                {ride.special_requirements && (
-                                  <div className="bg-muted/30 rounded-lg p-4">
-                                    <div className="flex items-start gap-2">
-                                      <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                                      <div>
-                                        <p className="font-medium">Special Requirements</p>
-                                        <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
+                                    {/* Vehicle Details */}
+                                    {ride.driver && (
+                                      <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
+                                        <div>
+                                          <p className="font-medium">Vehicle</p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {ride.driver.vehicle_model} - {ride.driver.vehicle_color}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <p className="font-medium">Plate</p>
+                                          <p className="text-sm text-muted-foreground">{ride.driver.vehicle_plate}</p>
+                                        </div>
+                                        <div>
+                                          <p className="font-medium">Payment Status</p>
+                                          <p className="text-sm text-muted-foreground">{ride.payment_status}</p>
+                                        </div>
+                                        <div>
+                                          <p className="font-medium">Passengers</p>
+                                          <p className="text-sm text-muted-foreground">{ride.passengers}</p>
+                                        </div>
                                       </div>
-                                    </div>
+                                    )}
+
+                                    {/* Special Requirements */}
+                                    {ride.special_requirements && (
+                                      <div className="bg-muted/30 rounded-lg p-4">
+                                        <div className="flex items-start gap-2">
+                                          <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                          <div>
+                                            <p className="font-medium">Special Requirements</p>
+                                            <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex justify-end gap-2 pt-2 border-t">
+                                  {ride.driver && (
+                                    <Button variant="outline" size="sm">
+                                      <Phone className="h-4 w-4 mr-2" />
+                                      Contact Driver
+                                    </Button>
+                                  )}
+                                  {ride.status !== 'Completed' && ride.status !== 'Cancelled' && (
+                                    <Button variant="outline" size="sm" onClick={() => handleEditClick(ride)}>
+                                      <Pencil className="h-4 w-4 mr-2" />
+                                      Edit
+                                    </Button>
+                                  )}
+                                  {ride.status !== 'In Progress' && (
+                                    <Button variant="destructive" size="sm" onClick={() => handleCancelClick(ride)}>
+                                      <X className="h-4 w-4 mr-2" />
+                                      Cancel
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                             </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    ) : (
+                      <div className="divide-y">
+                        {upcomingRides.map((ride) => (
+                          <div key={ride.id} className="p-6">
+                            <div className="flex flex-col space-y-6">
+                              {/* Header - Status, Trip Type, and Price */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={ride.status === "Confirmed" ? "default" : "secondary"}>
+                                    {ride.status}
+                                  </Badge>
+                                  <Badge variant="outline">{ride.trip_type}</Badge>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
+                                  <span className="text-green-600">$</span>
+                                  <span className="text-lg font-semibold text-green-600">
+                                    {parseFloat(ride.price).toFixed(2)}
+                                  </span>
+                                </div>
+                              </div>
 
-                            {/* Action Buttons */}
-                            <div className="flex justify-end gap-2 pt-2 border-t">
-                              {ride.driver && (
-                                <Button variant="outline" size="sm">
-                                  <Phone className="h-4 w-4 mr-2" />
-                                  Contact Driver
-                                </Button>
-                              )}
-                              {ride.status !== 'Completed' && ride.status !== 'Cancelled' && (
-                                <Button variant="outline" size="sm" onClick={() => handleEditClick(ride)}>
-                                  <Pencil className="h-4 w-4 mr-2" />
-                                  Edit
-                                </Button>
-                              )}
-                              {ride.status !== 'In Progress' && (
-                                <Button variant="destructive" size="sm" onClick={() => handleCancelClick(ride)}>
-                                  <X className="h-4 w-4 mr-2" />
-                                  Cancel
-                                </Button>
-                              )}
+                              {/* Main Content Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left Column - Driver and Trip Info */}
+                                <div className="space-y-6">
+                                  {/* Driver Information */}
+                                  {ride.driver && (
+                                    <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
+                                      <Avatar className="h-12 w-12">
+                                        <AvatarFallback className="bg-primary/10">
+                                          {ride.driver?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'D'}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="space-y-1">
+                                        <p className="font-semibold text-lg">{ride.driver?.name || 'Driver not assigned yet'}</p>
+                                        <div className="flex items-center gap-4">
+                                          <div className="flex items-center text-sm text-muted-foreground">
+                                            <Phone className="mr-1 h-4 w-4" />
+                                            {ride.driver?.phone || 'No phone'}
+                                          </div>
+                                          <div className="flex items-center text-sm text-muted-foreground">
+                                            <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                            {ride.driver?.rating || '4.8'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Locations */}
+                                  <div className="space-y-4">
+                                    <div className="relative pl-8">
+                                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
+                                      <div className="space-y-4">
+                                        <div className="relative">
+                                          <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                          <div>
+                                            <p className="font-medium">Pickup Location</p>
+                                            <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
+                                            {ride.pickup_notes && (
+                                              <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="relative">
+                                          <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                          <div>
+                                            <p className="font-medium">Dropoff Location</p>
+                                            <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
+                                            {ride.dropoff_notes && (
+                                              <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Right Column - Additional Details */}
+                                <div className="space-y-6">
+                                  {/* Date and Time */}
+                                  <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                                    <div className="flex items-center gap-3">
+                                      <Calendar className="h-5 w-5 text-primary" />
+                                      <div>
+                                        <p className="font-medium">Pickup Date</p>
+                                        <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <Clock className="h-5 w-5 text-primary" />
+                                      <div>
+                                        <p className="font-medium">Pickup Time</p>
+                                        <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Vehicle Details */}
+                                  {ride.driver && (
+                                    <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
+                                      <div>
+                                        <p className="font-medium">Vehicle</p>
+                                        <p className="text-sm text-muted-foreground">
+                                          {ride.driver.vehicle_model} - {ride.driver.vehicle_color}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Plate</p>
+                                        <p className="text-sm text-muted-foreground">{ride.driver.vehicle_plate}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Payment Status</p>
+                                        <p className="text-sm text-muted-foreground">{ride.payment_status}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Passengers</p>
+                                        <p className="text-sm text-muted-foreground">{ride.passengers}</p>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Special Requirements */}
+                                  {ride.special_requirements && (
+                                    <div className="bg-muted/30 rounded-lg p-4">
+                                      <div className="flex items-start gap-2">
+                                        <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                        <div>
+                                          <p className="font-medium">Special Requirements</p>
+                                          <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex justify-end gap-2 pt-2 border-t">
+                                {ride.driver && (
+                                  <Button variant="outline" size="sm">
+                                    <Phone className="h-4 w-4 mr-2" />
+                                    Contact Driver
+                                  </Button>
+                                )}
+                                {ride.status !== 'Completed' && ride.status !== 'Cancelled' && (
+                                  <Button variant="outline" size="sm" onClick={() => handleEditClick(ride)}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </Button>
+                                )}
+                                {ride.status !== 'In Progress' && (
+                                  <Button variant="destructive" size="sm" onClick={() => handleCancelClick(ride)}>
+                                    <X className="h-4 w-4 mr-2" />
+                                    Cancel
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -495,167 +664,327 @@ export default function CustomerRidesPage() {
                 <CardDescription>View your ride history</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                <ScrollArea className={cn(
-                  "h-[calc(100vh-20rem)]",
-                  "min-h-[300px]",
-                  "max-h-[500px]"
-                )}>
-                  {completedRides.length === 0 ? (
-                    <div className="flex justify-center items-center h-40 text-muted-foreground">
-                      No completed rides found
-                    </div>
-                  ) : (
-                    <div className="divide-y">
-                      {completedRides.map((ride) => (
-                        <div key={ride.id} className="p-6">
-                          <div className="flex flex-col space-y-6">
-                            {/* Header - Status, Trip Type, and Price */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Badge variant={ride.status === "Completed" ? "default" : "destructive"}>
-                                  {ride.status}
-                                </Badge>
-                                <Badge variant="outline">{ride.trip_type}</Badge>
+                {isMobile ? (
+                  <ScrollArea className={cn(
+                    "h-[calc(100vh-20rem)]",
+                    "min-h-[300px]",
+                    "max-h-[500px]"
+                  )}>
+                    {completedRides.length === 0 ? (
+                      <div className="flex justify-center items-center h-40 text-muted-foreground">
+                        No completed rides found
+                      </div>
+                    ) : (
+                      <div className="divide-y">
+                        {completedRides.map((ride) => (
+                          <div key={ride.id} className="p-6">
+                            <div className="flex flex-col space-y-6">
+                              {/* Header - Status, Trip Type, and Price */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={ride.status === "Completed" ? "default" : "destructive"}>
+                                    {ride.status}
+                                  </Badge>
+                                  <Badge variant="outline">{ride.trip_type}</Badge>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
+                                  <span className="text-green-600">$</span>
+                                  <span className="text-lg font-semibold text-green-600">
+                                    {parseFloat(ride.price).toFixed(2)}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
-                                <span className="text-green-600">$</span>
-                                <span className="text-lg font-semibold text-green-600">
-                                  {parseFloat(ride.price).toFixed(2)}
-                                </span>
-                              </div>
-                            </div>
 
-                            {/* Main Content Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              {/* Left Column - Driver and Trip Info */}
-                              <div className="space-y-6">
-                                {/* Driver Information */}
-                                {ride.driver && (
-                                  <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
-                                    <Avatar className="h-12 w-12">
-                                      <AvatarFallback className="bg-primary/10">
-                                        {ride.driver?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'D'}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="space-y-1">
-                                      <p className="font-semibold text-lg">{ride.driver?.name || 'Driver not assigned'}</p>
-                                      <div className="flex items-center gap-4">
-                                        <div className="flex items-center text-sm text-muted-foreground">
-                                          <Phone className="mr-1 h-4 w-4" />
-                                          {ride.driver?.phone || 'No phone'}
-                                        </div>
-                                        <div className="flex items-center text-sm text-muted-foreground">
-                                          <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
-                                          {ride.driver?.rating || '4.8'}
+                              {/* Main Content Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left Column - Driver and Trip Info */}
+                                <div className="space-y-6">
+                                  {/* Driver Information */}
+                                  {ride.driver && (
+                                    <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
+                                      <Avatar className="h-12 w-12">
+                                        <AvatarFallback className="bg-primary/10">
+                                          {ride.driver?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'D'}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="space-y-1">
+                                        <p className="font-semibold text-lg">{ride.driver?.name || 'Driver not assigned'}</p>
+                                        <div className="flex items-center gap-4">
+                                          <div className="flex items-center text-sm text-muted-foreground">
+                                            <Phone className="mr-1 h-4 w-4" />
+                                            {ride.driver?.phone || 'No phone'}
+                                          </div>
+                                          <div className="flex items-center text-sm text-muted-foreground">
+                                            <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                            {ride.driver?.rating || '4.8'}
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
 
-                                {/* Locations */}
-                                <div className="space-y-4">
-                                  <div className="relative pl-8">
-                                    <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
-                                    <div className="space-y-4">
-                                      <div className="relative">
-                                        <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
-                                        <div>
-                                          <p className="font-medium">Pickup Location</p>
-                                          <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
-                                          {ride.pickup_notes && (
-                                            <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
-                                          )}
+                                  {/* Locations */}
+                                  <div className="space-y-4">
+                                    <div className="relative pl-8">
+                                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
+                                      <div className="space-y-4">
+                                        <div className="relative">
+                                          <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                          <div>
+                                            <p className="font-medium">Pickup Location</p>
+                                            <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
+                                            {ride.pickup_notes && (
+                                              <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
+                                            )}
+                                          </div>
                                         </div>
-                                      </div>
-                                      <div className="relative">
-                                        <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
-                                        <div>
-                                          <p className="font-medium">Dropoff Location</p>
-                                          <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
-                                          {ride.dropoff_notes && (
-                                            <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
-                                          )}
+                                        <div className="relative">
+                                          <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                          <div>
+                                            <p className="font-medium">Dropoff Location</p>
+                                            <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
+                                            {ride.dropoff_notes && (
+                                              <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
+                                            )}
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
 
-                              {/* Right Column - Additional Details */}
-                              <div className="space-y-6">
-                                {/* Date and Time */}
-                                <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-                                  <div className="flex items-center gap-3">
-                                    <Calendar className="h-5 w-5 text-primary" />
-                                    <div>
-                                      <p className="font-medium">Pickup Date</p>
-                                      <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <Clock className="h-5 w-5 text-primary" />
-                                    <div>
-                                      <p className="font-medium">Pickup Time</p>
-                                      <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Vehicle Details */}
-                                {ride.driver && (
-                                  <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
-                                    <div>
-                                      <p className="font-medium">Vehicle</p>
-                                      <p className="text-sm text-muted-foreground">
-                                        {ride.driver.vehicle_model} - {ride.driver.vehicle_color}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <p className="font-medium">Plate</p>
-                                      <p className="text-sm text-muted-foreground">{ride.driver.vehicle_plate}</p>
-                                    </div>
-                                    <div>
-                                      <p className="font-medium">Payment Status</p>
-                                      <p className="text-sm text-muted-foreground">{ride.payment_status}</p>
-                                    </div>
-                                    <div>
-                                      <p className="font-medium">Passengers</p>
-                                      <p className="text-sm text-muted-foreground">{ride.passengers}</p>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Special Requirements */}
-                                {ride.special_requirements && (
-                                  <div className="bg-muted/30 rounded-lg p-4">
-                                    <div className="flex items-start gap-2">
-                                      <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                {/* Right Column - Additional Details */}
+                                <div className="space-y-6">
+                                  {/* Date and Time */}
+                                  <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                                    <div className="flex items-center gap-3">
+                                      <Calendar className="h-5 w-5 text-primary" />
                                       <div>
-                                        <p className="font-medium">Special Requirements</p>
-                                        <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
+                                        <p className="font-medium">Pickup Date</p>
+                                        <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <Clock className="h-5 w-5 text-primary" />
+                                      <div>
+                                        <p className="font-medium">Pickup Time</p>
+                                        <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
                                       </div>
                                     </div>
                                   </div>
+
+                                  {/* Vehicle Details */}
+                                  {ride.driver && (
+                                    <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
+                                      <div>
+                                        <p className="font-medium">Vehicle</p>
+                                        <p className="text-sm text-muted-foreground">
+                                          {ride.driver.vehicle_model} - {ride.driver.vehicle_color}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Plate</p>
+                                        <p className="text-sm text-muted-foreground">{ride.driver.vehicle_plate}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Payment Status</p>
+                                        <p className="text-sm text-muted-foreground">{ride.payment_status}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Passengers</p>
+                                        <p className="text-sm text-muted-foreground">{ride.passengers}</p>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Special Requirements */}
+                                  {ride.special_requirements && (
+                                    <div className="bg-muted/30 rounded-lg p-4">
+                                      <div className="flex items-start gap-2">
+                                        <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                        <div>
+                                          <p className="font-medium">Special Requirements</p>
+                                          <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex justify-end gap-2 pt-2 border-t">
+                                {ride.status === 'Completed' && (
+                                  <Button variant="outline" size="sm">
+                                    Rate Trip
+                                  </Button>
                                 )}
                               </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex justify-end gap-2 pt-2 border-t">
-                              {ride.status === 'Completed' && (
-                                <Button variant="outline" size="sm">
-                                  Rate Trip
-                                </Button>
-                              )}
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                ) : (
+                  <>
+                    {completedRides.length === 0 ? (
+                      <div className="flex justify-center items-center h-40 text-muted-foreground">
+                        No completed rides found
+                      </div>
+                    ) : (
+                      <div className="divide-y">
+                        {completedRides.map((ride) => (
+                          <div key={ride.id} className="p-6">
+                            <div className="flex flex-col space-y-6">
+                              {/* Header - Status, Trip Type, and Price */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={ride.status === "Completed" ? "default" : "destructive"}>
+                                    {ride.status}
+                                  </Badge>
+                                  <Badge variant="outline">{ride.trip_type}</Badge>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/50 px-2.5 py-1 rounded-md">
+                                  <span className="text-green-600">$</span>
+                                  <span className="text-lg font-semibold text-green-600">
+                                    {parseFloat(ride.price).toFixed(2)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Main Content Grid */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left Column - Driver and Trip Info */}
+                                <div className="space-y-6">
+                                  {/* Driver Information */}
+                                  {ride.driver && (
+                                    <div className="flex items-start gap-4 bg-muted/30 rounded-lg p-4">
+                                      <Avatar className="h-12 w-12">
+                                        <AvatarFallback className="bg-primary/10">
+                                          {ride.driver?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'D'}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="space-y-1">
+                                        <p className="font-semibold text-lg">{ride.driver?.name || 'Driver not assigned'}</p>
+                                        <div className="flex items-center gap-4">
+                                          <div className="flex items-center text-sm text-muted-foreground">
+                                            <Phone className="mr-1 h-4 w-4" />
+                                            {ride.driver?.phone || 'No phone'}
+                                          </div>
+                                          <div className="flex items-center text-sm text-muted-foreground">
+                                            <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                            {ride.driver?.rating || '4.8'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Locations */}
+                                  <div className="space-y-4">
+                                    <div className="relative pl-8">
+                                      <div className="absolute left-2 top-1/2 -translate-y-1/2 w-0.5 h-full bg-border" />
+                                      <div className="space-y-4">
+                                        <div className="relative">
+                                          <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                          <div>
+                                            <p className="font-medium">Pickup Location</p>
+                                            <p className="text-sm text-muted-foreground">{ride.pickup_location}</p>
+                                            {ride.pickup_notes && (
+                                              <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.pickup_notes}</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="relative">
+                                          <div className="absolute left-[-1.85rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background" />
+                                          <div>
+                                            <p className="font-medium">Dropoff Location</p>
+                                            <p className="text-sm text-muted-foreground">{ride.dropoff_location}</p>
+                                            {ride.dropoff_notes && (
+                                              <p className="text-sm text-muted-foreground italic mt-1">Note: {ride.dropoff_notes}</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Right Column - Additional Details */}
+                                <div className="space-y-6">
+                                  {/* Date and Time */}
+                                  <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                                    <div className="flex items-center gap-3">
+                                      <Calendar className="h-5 w-5 text-primary" />
+                                      <div>
+                                        <p className="font-medium">Pickup Date</p>
+                                        <p className="text-sm text-muted-foreground">{ride.pickup_date}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <Clock className="h-5 w-5 text-primary" />
+                                      <div>
+                                        <p className="font-medium">Pickup Time</p>
+                                        <p className="text-sm text-muted-foreground">{ride.pickup_time}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Vehicle Details */}
+                                  {ride.driver && (
+                                    <div className="grid grid-cols-2 gap-4 bg-muted/30 rounded-lg p-4">
+                                      <div>
+                                        <p className="font-medium">Vehicle</p>
+                                        <p className="text-sm text-muted-foreground">
+                                          {ride.driver.vehicle_model} - {ride.driver.vehicle_color}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Plate</p>
+                                        <p className="text-sm text-muted-foreground">{ride.driver.vehicle_plate}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Payment Status</p>
+                                        <p className="text-sm text-muted-foreground">{ride.payment_status}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">Passengers</p>
+                                        <p className="text-sm text-muted-foreground">{ride.passengers}</p>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Special Requirements */}
+                                  {ride.special_requirements && (
+                                    <div className="bg-muted/30 rounded-lg p-4">
+                                      <div className="flex items-start gap-2">
+                                        <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                        <div>
+                                          <p className="font-medium">Special Requirements</p>
+                                          <p className="text-sm text-muted-foreground">{ride.special_requirements}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex justify-end gap-2 pt-2 border-t">
+                                {ride.status === 'Completed' && (
+                                  <Button variant="outline" size="sm">
+                                    Rate Trip
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
           </>
