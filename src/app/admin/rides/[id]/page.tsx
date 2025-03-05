@@ -130,12 +130,7 @@ export default function AdminRideDetailsPage() {
     <DashboardLayout userType="admin">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Ride Details</h2>
-          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Ride Details</h2>
           {ride && ride.status !== 'Cancelled' && ride.status !== 'Completed' && (
             <Button variant="destructive" onClick={handleCancelClick}>
               <X className="mr-2 h-4 w-4" />

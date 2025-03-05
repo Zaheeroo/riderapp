@@ -7,9 +7,9 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 // GET a specific ride by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const id = params.id;
+  const id = context.params.id;
 
   if (!id) {
     return NextResponse.json({ error: 'Ride ID is required' }, { status: 400 });
