@@ -321,5 +321,27 @@ export const RideService = {
       console.error('Error assigning driver:', error);
       return { data: null, error };
     }
-  }
+  },
+
+  updateRideDetails: async (rideId: number, driverId: number, updates: any) => {
+    try {
+      const response = await fetch('/api/driver/rides/update', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rideId,
+          driverId,
+          updates
+        }),
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating ride details:', error);
+      return { error };
+    }
+  },
 };
