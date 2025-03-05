@@ -251,8 +251,9 @@ export default function CustomerRidesPage() {
                             <div className="space-y-4">
                               <div className="flex items-center gap-4">
                                 <Avatar className="h-10 w-10">
-                                  <AvatarImage src={ride.driver?.avatar || '/placeholder-avatar.png'} alt={ride.driver?.name || 'Driver'} />
-                                  <AvatarFallback>{ride.driver?.name?.[0] || 'D'}</AvatarFallback>
+                                  <AvatarFallback>
+                                    {ride.driver?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'D'}
+                                  </AvatarFallback>
                                 </Avatar>
                                 <div>
                                   <p className="font-medium">{ride.driver?.name || 'Driver not assigned yet'}</p>
@@ -370,8 +371,9 @@ export default function CustomerRidesPage() {
                               <div className="space-y-4">
                                 <div className="flex items-center gap-4">
                                   <Avatar className="h-10 w-10">
-                                    <AvatarImage src={ride.driver?.avatar || '/placeholder-avatar.png'} alt={ride.driver?.name || 'Driver'} />
-                                    <AvatarFallback>{ride.driver?.name?.[0] || 'D'}</AvatarFallback>
+                                    <AvatarFallback>
+                                      {ride.driver?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'D'}
+                                    </AvatarFallback>
                                   </Avatar>
                                   <div>
                                     <p className="font-medium">{ride.driver?.name || 'No Driver'}</p>

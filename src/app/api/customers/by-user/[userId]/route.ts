@@ -14,7 +14,9 @@ export async function GET(
   }
 
   try {
-    const userId = context.params.userId;
+    // Await the params object before destructuring
+    const params = await context.params;
+    const userId = params.userId;
     
     if (!userId) {
       return NextResponse.json(

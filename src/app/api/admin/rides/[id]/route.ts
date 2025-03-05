@@ -9,18 +9,20 @@ export async function GET(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const id = context.params.id;
-
-  if (!id) {
-    return NextResponse.json({ error: 'Ride ID is required' }, { status: 400 });
-  }
-
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Missing Supabase credentials');
     return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
   }
 
   try {
+    // Await the params object before destructuring
+    const params = await context.params;
+    const id = params.id;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Ride ID is required' }, { status: 400 });
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Get the ride with customer and driver information
@@ -55,18 +57,20 @@ export async function PATCH(
   request: NextRequest,
   context: { params: { id: string } }
 ) {
-  const id = context.params.id;
-
-  if (!id) {
-    return NextResponse.json({ error: 'Ride ID is required' }, { status: 400 });
-  }
-
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Missing Supabase credentials');
     return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
   }
 
   try {
+    // Await the params object before destructuring
+    const params = await context.params;
+    const id = params.id;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Ride ID is required' }, { status: 400 });
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const updates = await request.json();
     
