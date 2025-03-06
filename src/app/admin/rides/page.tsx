@@ -1075,85 +1075,62 @@ export default function AdminRidesPage() {
 
         {/* Edit Ride Modal */}
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Ride</DialogTitle>
-              <DialogDescription>Update ride information</DialogDescription>
+              <DialogTitle>Edit Ride Details</DialogTitle>
+              <DialogDescription>
+                Update the ride information below. Click save when you're done.
+              </DialogDescription>
             </DialogHeader>
             
-            {error && (
-              <div className="mb-4 p-3 text-sm bg-red-100 border border-red-200 text-red-600 rounded-md">
-                {error.description}
-              </div>
-            )}
-            
-            <form className="space-y-4" id="edit-ride-form" onSubmit={handleEditSubmit}>
-              <div className="space-y-2">
-                <Label htmlFor="pickup_location">Pickup Location</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <form id="edit-ride-form" onSubmit={handleEditSubmit} className="space-y-6">
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="pickup_location">Pickup Location</Label>
                   <Input
                     id="pickup_location"
                     value={editFormData.pickup_location}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, pickup_location: e.target.value }))}
                     placeholder="Enter pickup address"
-                    className="pl-8"
                     required
                   />
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="dropoff_location">Dropoff Location</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                
+                <div className="space-y-2">
+                  <Label htmlFor="dropoff_location">Dropoff Location</Label>
                   <Input
                     id="dropoff_location"
                     value={editFormData.dropoff_location}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, dropoff_location: e.target.value }))}
                     placeholder="Enter dropoff address"
-                    className="pl-8"
                     required
                   />
                 </div>
-              </div>
-              
-              <div className="grid gap-4 sm:grid-cols-2">
+                
                 <div className="space-y-2">
                   <Label htmlFor="pickup_date">Pickup Date</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="pickup_date"
-                      type="date"
-                      value={editFormData.pickup_date}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, pickup_date: e.target.value }))}
-                      className="pl-8"
-                      required
-                    />
-                  </div>
+                  <Input
+                    id="pickup_date"
+                    type="date"
+                    value={editFormData.pickup_date}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, pickup_date: e.target.value }))}
+                    required
+                  />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="pickup_time">Pickup Time</Label>
-                  <div className="relative">
-                    <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="pickup_time"
-                      type="time"
-                      value={editFormData.pickup_time}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, pickup_time: e.target.value }))}
-                      className="pl-8"
-                      required
-                    />
-                  </div>
+                  <Input
+                    id="pickup_time"
+                    type="time"
+                    value={editFormData.pickup_time}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, pickup_time: e.target.value }))}
+                    required
+                  />
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="price">Price ($)</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price ($)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -1161,140 +1138,140 @@ export default function AdminRidesPage() {
                     min="0"
                     value={editFormData.price}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="0.00"
-                    className="pl-8"
                     required
                   />
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select 
-                  value={editFormData.status} 
-                  onValueChange={(value) => setEditFormData(prev => ({ ...prev, status: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Confirmed">Confirmed</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
+
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select 
+                    value={editFormData.status} 
+                    onValueChange={(value) => setEditFormData(prev => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Confirmed">Confirmed</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="trip_type">Trip Type</Label>
+                  <Select 
+                    value={editFormData.trip_type} 
+                    onValueChange={(value) => setEditFormData(prev => ({ ...prev, trip_type: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select trip type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="One-way">One-way</SelectItem>
+                      <SelectItem value="Airport Transfer">Airport Transfer</SelectItem>
+                      <SelectItem value="Guided Tour">Guided Tour</SelectItem>
+                      <SelectItem value="Point to Point Transfer">Point to Point Transfer</SelectItem>
+                      <SelectItem value="Hourly Charter">Hourly Charter</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="vehicle_type">Vehicle Type</Label>
+                  <Select 
+                    value={editFormData.vehicle_type} 
+                    onValueChange={(value) => setEditFormData(prev => ({ ...prev, vehicle_type: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select vehicle type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Standard">Standard</SelectItem>
+                      <SelectItem value="Premium">Premium</SelectItem>
+                      <SelectItem value="SUV">SUV</SelectItem>
+                      <SelectItem value="Luxury">Luxury</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="passengers">Number of Passengers</Label>
+                  <Input
+                    id="passengers"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={editFormData.passengers}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, passengers: parseInt(e.target.value) }))}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="payment_status">Payment Status</Label>
+                  <Select 
+                    value={editFormData.payment_status} 
+                    onValueChange={(value) => setEditFormData(prev => ({ ...prev, payment_status: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Partial">Partial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="driver">Assign Driver</Label>
+                  <Select 
+                    value={editFormData.driver_id?.toString() || 'unassigned'} 
+                    onValueChange={(value) => setEditFormData(prev => ({ 
+                      ...prev, 
+                      driver_id: value === 'unassigned' ? null : parseInt(value) 
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a driver" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">No driver assigned</SelectItem>
+                      {drivers.map((driver) => (
+                        <SelectItem key={driver.id} value={driver.id.toString()}>
+                          {driver.name} - {driver.vehicle_model}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="trip_type">Trip Type</Label>
-                <Select 
-                  value={editFormData.trip_type} 
-                  onValueChange={(value) => setEditFormData(prev => ({ ...prev, trip_type: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select trip type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="One-way">One-way</SelectItem>
-                    <SelectItem value="Airport Transfer">Airport Transfer</SelectItem>
-                    <SelectItem value="Guided Tour">Guided Tour</SelectItem>
-                    <SelectItem value="Point to Point Transfer">Point to Point Transfer</SelectItem>
-                    <SelectItem value="Hourly Charter">Hourly Charter</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="special_requirements">Special Requirements</Label>
+                  <Input
+                    id="special_requirements"
+                    value={editFormData.special_requirements}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, special_requirements: e.target.value }))}
+                    placeholder="Any special requirements or requests"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="vehicle_type">Vehicle Type</Label>
-                <Select 
-                  value={editFormData.vehicle_type} 
-                  onValueChange={(value) => setEditFormData(prev => ({ ...prev, vehicle_type: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select vehicle type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Standard">Standard</SelectItem>
-                    <SelectItem value="Premium">Premium</SelectItem>
-                    <SelectItem value="SUV">SUV</SelectItem>
-                    <SelectItem value="Luxury">Luxury</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="passengers">Number of Passengers</Label>
-                <Input
-                  id="passengers"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={editFormData.passengers}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, passengers: parseInt(e.target.value) }))}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="payment_status">Payment Status</Label>
-                <Select 
-                  value={editFormData.payment_status} 
-                  onValueChange={(value) => setEditFormData(prev => ({ ...prev, payment_status: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select payment status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Paid">Paid</SelectItem>
-                    <SelectItem value="Partial">Partial</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="driver">Assign Driver</Label>
-                <Select 
-                  value={editFormData.driver_id?.toString() || 'unassigned'} 
-                  onValueChange={(value) => setEditFormData(prev => ({ 
-                    ...prev, 
-                    driver_id: value === 'unassigned' ? null : parseInt(value) 
-                  }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a driver" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unassigned">No driver assigned</SelectItem>
-                    {drivers.map((driver) => (
-                      <SelectItem key={driver.id} value={driver.id.toString()}>
-                        {driver.name} - {driver.vehicle_model}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="special_requirements">Special Requirements</Label>
-                <Input
-                  id="special_requirements"
-                  value={editFormData.special_requirements}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, special_requirements: e.target.value }))}
-                  placeholder="Any special requirements or requests"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="admin_notes">Admin Notes</Label>
-                <Input
-                  id="admin_notes"
-                  value={editFormData.admin_notes}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, admin_notes: e.target.value }))}
-                  placeholder="Internal notes for admin use"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="admin_notes">Admin Notes</Label>
+                  <Input
+                    id="admin_notes"
+                    value={editFormData.admin_notes}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, admin_notes: e.target.value }))}
+                    placeholder="Internal notes for admin use"
+                  />
+                </div>
               </div>
             </form>
             
