@@ -26,6 +26,24 @@ import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+// Type definitions
+type Driver = {
+  id: number;
+  user_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+  vehicle_model: string;
+  vehicle_year: string;
+  vehicle_plate: string;
+  vehicle_color: string;
+  rating: number;
+  total_rides: number;
+  created_at: string;
+  updated_at: string;
+};
+
 // Add MapPinned icon as a custom component since it's not available in lucide-react
 const MapPinned = (props: any) => (
   <svg
@@ -73,7 +91,8 @@ export default function AdminRidesPage() {
     passengers: 1,
     payment_status: '',
     special_requirements: '',
-    admin_notes: ''
+    admin_notes: '',
+    driver_id: null as number | null
   });
   
   // Stats
@@ -83,6 +102,9 @@ export default function AdminRidesPage() {
     revenueToday: 0,
     activeDrivers: 0
   });
+
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loadingDrivers, setLoadingDrivers] = useState(false);
 
   useEffect(() => {
     // Only fetch data if we have a user
@@ -158,6 +180,29 @@ export default function AdminRidesPage() {
     fetchRides();
   }, [user]);
 
+  const fetchDrivers = async () => {
+    setLoadingDrivers(true);
+    try {
+      const response = await fetch('/api/admin/drivers');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch drivers');
+      }
+      
+      const data = await response.json();
+      setDrivers(data);
+    } catch (error: any) {
+      console.error('Error fetching drivers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load drivers",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingDrivers(false);
+    }
+  };
+
   const handleCancelClick = (ride: any) => {
     setSelectedRide(ride);
     setShowCancelConfirmation(true);
@@ -223,8 +268,10 @@ export default function AdminRidesPage() {
       passengers: ride.passengers,
       payment_status: ride.payment_status,
       special_requirements: ride.special_requirements || '',
-      admin_notes: ride.admin_notes || ''
+      admin_notes: ride.admin_notes || '',
+      driver_id: ride.driver_id
     });
+    fetchDrivers();
     setShowEditModal(true);
   };
 
@@ -1203,6 +1250,29 @@ export default function AdminRidesPage() {
                     <SelectItem value="Pending">Pending</SelectItem>
                     <SelectItem value="Paid">Paid</SelectItem>
                     <SelectItem value="Partial">Partial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="driver">Assign Driver</Label>
+                <Select 
+                  value={editFormData.driver_id?.toString() || 'unassigned'} 
+                  onValueChange={(value) => setEditFormData(prev => ({ 
+                    ...prev, 
+                    driver_id: value === 'unassigned' ? null : parseInt(value) 
+                  }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a driver" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">No driver assigned</SelectItem>
+                    {drivers.map((driver) => (
+                      <SelectItem key={driver.id} value={driver.id.toString()}>
+                        {driver.name} - {driver.vehicle_model}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
